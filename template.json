@@ -1,0 +1,174 @@
+{
+  "name": "Teatro Museo Events Domain",
+  "slug": "teatromuseo-event-domain",
+  "repo": "dcardenasl/teatromuseo-event-domain",
+  "type": "domain-template",
+  "version": "0.1.0",
+  "description": "Teatro Museo domain for scheduled programming, ticket types, reservations, and tickets.",
+  "components": [
+    {
+      "role": "hub",
+      "path": "teatromuseo-api",
+      "repo_name": "teatromuseo-api"
+    },
+    {
+      "role": "domain",
+      "path": "teatromuseo-event-domain",
+      "repo_name": "teatromuseo-event-domain"
+    }
+  ],
+  "defaults": {
+    "ports": {
+      "hub": 8180,
+      "admin": 8182,
+      "domain": 8193
+    },
+    "databases": {
+      "hub": "ci4_events_hub",
+      "hub_test": "ci4_events_hub_test",
+      "domain": "teatromuseo_event_domain",
+      "domain_test": "teatromuseo_event_domain_test"
+    },
+    "domain_app_code": "events"
+  },
+  "entities": [
+    {
+      "name": "Event",
+      "resource": "events",
+      "api_path": "/events/events",
+      "title": "Events",
+      "fields": [
+        { "name": "uuid", "type": "string", "label": "UUID", "help": "Stable identifier used by integrations.", "required": true },
+        {
+          "name": "title",
+          "type": "string",
+          "label": "Title",
+          "placeholder": "Annual meetup 2026",
+          "help": "Public event name shown to attendees.",
+          "required": true,
+          "i18n": {
+            "en": {
+              "label": "Title",
+              "help": "Public event name shown to attendees."
+            },
+            "es": {
+              "label": "Título",
+              "help": "Nombre público del evento visible para asistentes."
+            },
+            "fr": {
+              "label": "Titre",
+              "help": "Nom public de l'événement affiché aux participants."
+            }
+          }
+        },
+        { "name": "event_type", "type": "string", "label": "Programming Type", "help": "Classifies the activity as a function, festival, course, workshop, or other program.", "required": true },
+        { "name": "description", "type": "text", "label": "Description", "placeholder": "Explain what attendees can expect...", "help": "Long-form event description for the detail page.", "required": true },
+        { "name": "start_time", "type": "string", "label": "Start Time", "help": "When the event starts.", "required": true },
+        { "name": "end_time", "type": "string", "label": "End Time", "help": "When the event ends.", "required": true },
+        { "name": "venue", "type": "string", "label": "Venue", "placeholder": "Convention Center", "help": "Physical or virtual location of the event.", "required": true },
+        { "name": "capacity", "type": "integer", "label": "Capacity", "help": "Maximum number of attendees allowed.", "required": true },
+        { "name": "available_spots", "type": "integer", "label": "Available Spots", "help": "Remaining tickets or seats available.", "required": true },
+        { "name": "status", "type": "string", "label": "Status", "help": "Controls whether the event is draft, published, or cancelled.", "required": true }
+      ]
+    },
+    {
+      "name": "TicketType",
+      "resource": "ticket-types",
+      "api_path": "/events/ticket-types",
+      "title": "Ticket Types",
+      "fields": [
+        { "name": "event_id", "type": "integer", "label": "Event ID", "help": "Parent event that owns this ticket type.", "required": true },
+        { "name": "name", "type": "string", "label": "Name", "placeholder": "General admission", "help": "Public ticket type name.", "required": true },
+        { "name": "price", "type": "number", "label": "Price", "help": "Sale price for this ticket type.", "required": true },
+        { "name": "capacity", "type": "integer", "label": "Capacity", "help": "Maximum number of tickets of this type.", "required": true },
+        { "name": "available_spots", "type": "integer", "label": "Available Spots", "help": "Remaining stock for this ticket type.", "required": true },
+        { "name": "sales_start", "type": "string", "label": "Sales Start", "help": "Date and time when sales open.", "required": true },
+        { "name": "sales_end", "type": "string", "label": "Sales End", "help": "Date and time when sales close.", "required": true }
+      ]
+    },
+    {
+      "name": "Booking",
+      "resource": "bookings",
+      "api_path": "/events/bookings",
+      "title": "Bookings",
+      "fields": [
+        { "name": "uuid", "type": "string", "label": "UUID", "help": "Stable identifier used by integrations.", "required": true },
+        { "name": "user_id", "type": "integer", "label": "User ID", "help": "Registered user who made the booking." },
+        { "name": "guest_email", "type": "string", "label": "Guest Email", "placeholder": "guest@example.com", "help": "Email for guests that check out without an account." },
+        { "name": "total_amount", "type": "number", "label": "Total Amount", "help": "Final amount charged for the booking.", "required": true },
+        { "name": "status", "type": "string", "label": "Status", "help": "Current booking lifecycle state.", "required": true },
+        { "name": "reserved_until", "type": "string", "label": "Reserved Until", "help": "Expiration timestamp for the booking reservation." }
+      ]
+    },
+    {
+      "name": "Ticket",
+      "resource": "tickets",
+      "api_path": "/events/tickets",
+      "title": "Event Tickets",
+      "fields": [
+        { "name": "uuid", "type": "string", "label": "UUID", "help": "Stable identifier used by integrations.", "required": true },
+        { "name": "booking_id", "type": "integer", "label": "Booking ID", "help": "Booking that owns this ticket.", "required": true },
+        { "name": "ticket_type_id", "type": "integer", "label": "Ticket Type ID", "help": "Ticket type assigned to the holder.", "required": true },
+        { "name": "holder_name", "type": "string", "label": "Holder Name", "placeholder": "Jane Doe", "help": "Name printed on the ticket.", "required": true },
+        { "name": "holder_email", "type": "string", "label": "Holder Email", "placeholder": "jane@example.com", "help": "Email attached to the ticket.", "required": true },
+        { "name": "qr_code_token", "type": "string", "label": "QR Code Token", "help": "Token encoded in the QR code.", "required": true },
+        { "name": "status", "type": "string", "label": "Status", "help": "Ticket validity or usage state.", "required": true },
+        { "name": "checked_in_at", "type": "string", "label": "Checked In At", "help": "When the attendee checked in." }
+      ]
+    }
+  ],
+  "permissions": [
+    { "code": "events.read",         "roles": ["user", "admin", "superadmin"] },
+    { "code": "events.write",        "roles": ["admin", "superadmin"] },
+    { "code": "events.delete",       "roles": ["superadmin"] },
+    { "code": "ticket-types.read",   "roles": ["user", "admin", "superadmin"] },
+    { "code": "ticket-types.write",  "roles": ["admin", "superadmin"] },
+    { "code": "ticket-types.delete", "roles": ["superadmin"] },
+    { "code": "bookings.read",       "roles": ["admin", "superadmin"] },
+    { "code": "bookings.write",      "roles": ["admin", "superadmin"] },
+    { "code": "bookings.delete",     "roles": ["superadmin"] },
+    { "code": "tickets.read",        "roles": ["admin", "superadmin"] },
+    { "code": "tickets.write",       "roles": ["admin", "superadmin"] },
+    { "code": "tickets.delete",      "roles": ["superadmin"] }
+  ],
+  "mirror_to_hub": true,
+  "admin_modules": [
+    {
+      "resource": "Event",
+      "module": "Events",
+      "api_path": "/events/events",
+      "service": "domain",
+      "fields": "uuid:string:required,title:string:required,event_type:enum:required:function|festival|course|workshop|other,description:text:required,start_time:datetime:required,end_time:datetime:required,venue:string:required,capacity:int:required,available_spots:int:required,status:enum:required:draft|published|cancelled"
+    },
+    {
+      "resource": "TicketType",
+      "module": "TicketTypes",
+      "api_path": "/events/ticket-types",
+      "service": "domain",
+      "fields": "event_id:relation:required:events,name:string:required,price:decimal:required,capacity:int:required,available_spots:int:required,sales_start:datetime:required,sales_end:datetime:required"
+    },
+    {
+      "resource": "Booking",
+      "module": "Bookings",
+      "api_path": "/events/bookings",
+      "service": "domain",
+      "fields": "uuid:string:required,user_id:int,guest_email:string,total_amount:decimal:required,status:enum:required:pending|confirmed|cancelled|expired,reserved_until:datetime"
+    },
+    {
+      "resource": "Ticket",
+      "module": "Tickets",
+      "api_path": "/events/tickets",
+      "service": "domain",
+      "fields": "uuid:string:required,booking_id:relation:required:bookings,ticket_type_id:relation:required:ticketTypes,holder_name:string:required,holder_email:string:required,qr_code_token:string:required,status:enum:required:valid|used|void,checked_in_at:datetime"
+    }
+  ],
+  "admin_sidebar": [
+    {
+      "module": "Events",
+      "label": "Events.sidebar_label",
+      "icon": "calendar",
+      "permission": "events.read",
+      "items": ["Event", "TicketType", "Booking", "Ticket"]
+    }
+  ]
+}

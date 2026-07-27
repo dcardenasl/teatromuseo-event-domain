@@ -1,0 +1,1908 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Teatro Museo Event Domain",
+        "description": "Teatro Museo domain for scheduled programming, ticket types, reservations, and access control.",
+        "version": "1.2.1"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8180",
+            "description": "Local development server"
+        }
+    ],
+    "paths": {
+        "/api/v1/events/bookings": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "List Bookings",
+                "operationId": "e30d4b32679e78db44c5a3828f33f7ca",
+                "responses": {
+                    "200": {
+                        "description": "List retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/BookingResponse"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Create new Booking",
+                "operationId": "d27a74aca0e64986aa7bee52f5eadde9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BookingCreateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/events/bookings/{id}": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get Booking by ID",
+                "operationId": "8f3270d07d332eb04307dd763ad3c429",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BookingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Update existing Booking",
+                "operationId": "3708ef33707de1fa10f40b482738b9da",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BookingUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BookingResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Delete Booking by ID",
+                "operationId": "587ee1c16a82513f586d579c29d4be8d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted successfully"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/events/events": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "List Events",
+                "operationId": "6bfde008e2a8d4e2a80b8214e13c50c4",
+                "responses": {
+                    "200": {
+                        "description": "List retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/EventResponse"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Create new Event",
+                "operationId": "fa09813e1884b73534666163fbf38788",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EventCreateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/events/events/{id}": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get Event by ID",
+                "operationId": "02d16e226a920a894a323d636c9bc38b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EventResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Update existing Event",
+                "operationId": "75d2b17329278f5201fe85558417de3e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EventUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EventResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Delete Event by ID",
+                "operationId": "b4c9c2a433a3d41a2533ee89d58e6978",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted successfully"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/events/tickets": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "List Tickets",
+                "operationId": "e2c9191006bead872d9d71017e9a671c",
+                "responses": {
+                    "200": {
+                        "description": "List retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/TicketResponse"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Create new Ticket",
+                "operationId": "6c7a9d29d099d5c8fd109722ab65023e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TicketCreateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/events/tickets/{id}": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get Ticket by ID",
+                "operationId": "e50c974d29be1ffee1e47ceb277e4944",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TicketResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Update existing Ticket",
+                "operationId": "aab2e2f61c27d5d335f63b138ec478cb",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TicketUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TicketResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Delete Ticket by ID",
+                "operationId": "ad67e5e71ae9774fb23db44a9f27cf5c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted successfully"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/events/ticket-types": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "List TicketTypes",
+                "operationId": "64da369ca5798a54a4d66620432d489b",
+                "responses": {
+                    "200": {
+                        "description": "List retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/TicketTypeResponse"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Create new TicketType",
+                "operationId": "6cca9a2f5b592b66c20ef70b334e3c0b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TicketTypeCreateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/events/ticket-types/{id}": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get TicketType by ID",
+                "operationId": "0b06f99189a28aa5f892ab89ef110ff5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TicketTypeResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Update existing TicketType",
+                "operationId": "e668c38079fe641e8ee2f4618a129946",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TicketTypeUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TicketTypeResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Delete TicketType by ID",
+                "operationId": "2671f7a8971a32e5817eebc14608efef",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted successfully"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/example/items": {
+            "get": {
+                "tags": [
+                    "Example"
+                ],
+                "summary": "List Items",
+                "operationId": "a9c15f362c34bdf13d604b22b481f9f5",
+                "responses": {
+                    "200": {
+                        "description": "List retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ItemResponse"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Example"
+                ],
+                "summary": "Create new Item",
+                "operationId": "040e356e83903d42ebfe0d5ee257d19d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ItemCreateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/example/items/{id}": {
+            "get": {
+                "tags": [
+                    "Example"
+                ],
+                "summary": "Get Item by ID",
+                "operationId": "d69e979e9a4590f88f36d039d109b255",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ItemResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Example"
+                ],
+                "summary": "Update existing Item",
+                "operationId": "7369cb73cf024be82e3f0a1103404728",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ItemUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ItemResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Example"
+                ],
+                "summary": "Delete Item by ID",
+                "operationId": "dd073e61a4304117c7d88d18d0844794",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted successfully"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Health check",
+                "operationId": "8134f87e7bbe4107dc228a3b8d62d619",
+                "responses": {
+                    "200": {
+                        "description": "System healthy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "healthy"
+                                        },
+                                        "timestamp": {
+                                            "type": "string"
+                                        },
+                                        "checks": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "System unhealthy or monitoring disabled"
+                    }
+                }
+            }
+        },
+        "/ping": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Ping",
+                "operationId": "dbed0a220ea82e65e99701b5a0827c7e",
+                "responses": {
+                    "200": {
+                        "description": "Service reachable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "ok"
+                                        },
+                                        "timestamp": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ready": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Readiness check",
+                "operationId": "e5d2e3dea8c7b5d8c0113dce7beb0d09",
+                "responses": {
+                    "200": {
+                        "description": "Ready to serve",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "ready"
+                                        },
+                                        "timestamp": {
+                                            "type": "string"
+                                        },
+                                        "database": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Not ready"
+                    }
+                }
+            }
+        },
+        "/live": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Liveness check",
+                "operationId": "7a050261f6e4cedb42617b378f1e1415",
+                "responses": {
+                    "200": {
+                        "description": "Service alive",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "alive"
+                                        },
+                                        "timestamp": {
+                                            "type": "string"
+                                        },
+                                        "uptime_seconds": {
+                                            "type": "integer",
+                                            "example": 12345
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "AuthToken": {
+                "title": "Authentication Token",
+                "description": "JWT token with associated user data",
+                "required": [
+                    "token",
+                    "user"
+                ],
+                "properties": {
+                    "token": {
+                        "description": "JWT access token",
+                        "type": "string",
+                        "example": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+                    },
+                    "user": {
+                        "description": "Authenticated user data",
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "BookingCreateRequest": {
+                "properties": {
+                    "uuid": {
+                        "description": "uuid",
+                        "type": "string"
+                    },
+                    "user_id": {
+                        "description": "user_id",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "guest_email": {
+                        "description": "guest_email",
+                        "type": "string",
+                        "format": "email",
+                        "nullable": true
+                    },
+                    "total_amount": {
+                        "description": "total_amount",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "status": {
+                        "description": "status",
+                        "type": "string"
+                    },
+                    "reserved_until": {
+                        "description": "reserved_until",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "ticket_type_id": {
+                        "description": "ticket_type_id",
+                        "type": "integer"
+                    },
+                    "quantity": {
+                        "description": "quantity",
+                        "type": "integer"
+                    },
+                    "holder_name": {
+                        "description": "holder_name",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "holder_email": {
+                        "description": "holder_email",
+                        "type": "string",
+                        "format": "email",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "BookingIndexRequest": {},
+            "BookingUpdateRequest": {
+                "properties": {
+                    "uuid": {
+                        "description": "uuid",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "user_id": {
+                        "description": "user_id",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "guest_email": {
+                        "description": "guest_email",
+                        "type": "string",
+                        "format": "email",
+                        "nullable": true
+                    },
+                    "total_amount": {
+                        "description": "total_amount",
+                        "type": "number",
+                        "format": "float",
+                        "nullable": true
+                    },
+                    "status": {
+                        "description": "status",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "reserved_until": {
+                        "description": "reserved_until",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "EventCreateRequest": {
+                "properties": {
+                    "uuid": {
+                        "description": "uuid",
+                        "type": "string"
+                    },
+                    "title": {
+                        "description": "title",
+                        "type": "string"
+                    },
+                    "event_type": {
+                        "description": "Programming type",
+                        "type": "string",
+                        "enum": [
+                            "function",
+                            "festival",
+                            "course",
+                            "workshop",
+                            "other"
+                        ]
+                    },
+                    "description": {
+                        "description": "description",
+                        "type": "string"
+                    },
+                    "start_time": {
+                        "description": "start_time",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "end_time": {
+                        "description": "end_time",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "venue": {
+                        "description": "venue",
+                        "type": "string"
+                    },
+                    "capacity": {
+                        "description": "capacity",
+                        "type": "integer"
+                    },
+                    "available_spots": {
+                        "description": "available_spots",
+                        "type": "integer"
+                    },
+                    "status": {
+                        "description": "status",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "EventIndexRequest": {},
+            "EventUpdateRequest": {
+                "properties": {
+                    "uuid": {
+                        "description": "uuid",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "title": {
+                        "description": "title",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "event_type": {
+                        "description": "Programming type",
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "function",
+                            "festival",
+                            "course",
+                            "workshop",
+                            "other"
+                        ]
+                    },
+                    "description": {
+                        "description": "description",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "start_time": {
+                        "description": "start_time",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "end_time": {
+                        "description": "end_time",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "venue": {
+                        "description": "venue",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "capacity": {
+                        "description": "capacity",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "available_spots": {
+                        "description": "available_spots",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "status": {
+                        "description": "status",
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "TicketCreateRequest": {
+                "properties": {
+                    "uuid": {
+                        "description": "uuid",
+                        "type": "string"
+                    },
+                    "booking_id": {
+                        "description": "booking_id",
+                        "type": "integer"
+                    },
+                    "ticket_type_id": {
+                        "description": "ticket_type_id",
+                        "type": "integer"
+                    },
+                    "holder_name": {
+                        "description": "holder_name",
+                        "type": "string"
+                    },
+                    "holder_email": {
+                        "description": "holder_email",
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "qr_code_token": {
+                        "description": "qr_code_token",
+                        "type": "string"
+                    },
+                    "status": {
+                        "description": "status",
+                        "type": "string"
+                    },
+                    "checked_in_at": {
+                        "description": "checked_in_at",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "TicketIndexRequest": {},
+            "TicketTypeCreateRequest": {
+                "properties": {
+                    "event_id": {
+                        "description": "event_id",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "name",
+                        "type": "string"
+                    },
+                    "price": {
+                        "description": "price",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "capacity": {
+                        "description": "capacity",
+                        "type": "integer"
+                    },
+                    "available_spots": {
+                        "description": "available_spots",
+                        "type": "integer"
+                    },
+                    "sales_start": {
+                        "description": "sales_start",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "sales_end": {
+                        "description": "sales_end",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "TicketTypeIndexRequest": {},
+            "TicketTypeUpdateRequest": {
+                "properties": {
+                    "event_id": {
+                        "description": "event_id",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "name": {
+                        "description": "name",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "price": {
+                        "description": "price",
+                        "type": "number",
+                        "format": "float",
+                        "nullable": true
+                    },
+                    "capacity": {
+                        "description": "capacity",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "available_spots": {
+                        "description": "available_spots",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "sales_start": {
+                        "description": "sales_start",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "sales_end": {
+                        "description": "sales_end",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "TicketUpdateRequest": {
+                "properties": {
+                    "uuid": {
+                        "description": "uuid",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "booking_id": {
+                        "description": "booking_id",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "ticket_type_id": {
+                        "description": "ticket_type_id",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "holder_name": {
+                        "description": "holder_name",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "holder_email": {
+                        "description": "holder_email",
+                        "type": "string",
+                        "format": "email",
+                        "nullable": true
+                    },
+                    "qr_code_token": {
+                        "description": "qr_code_token",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "status": {
+                        "description": "status",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "checked_in_at": {
+                        "description": "checked_in_at",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ItemCreateRequest": {
+                "properties": {
+                    "name": {
+                        "description": "name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "description",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ItemIndexRequest": {},
+            "ItemUpdateRequest": {
+                "properties": {
+                    "name": {
+                        "description": "name",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "description": {
+                        "description": "description",
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "AuditResponse": {
+                "title": "Audit Response",
+                "description": "Audit log entry metadata",
+                "required": [
+                    "id",
+                    "action",
+                    "entity_type",
+                    "created_at"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique log identifier",
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "action": {
+                        "description": "Action performed",
+                        "type": "string",
+                        "example": "update",
+                        "enum": [
+                            "create",
+                            "update",
+                            "delete",
+                            "login_success",
+                            "login_failure"
+                        ]
+                    },
+                    "entity_type": {
+                        "description": "Affected entity type",
+                        "type": "string",
+                        "example": "users"
+                    },
+                    "entity_id": {
+                        "description": "Affected entity ID",
+                        "type": "integer",
+                        "example": 5,
+                        "nullable": true
+                    },
+                    "old_values": {
+                        "description": "Values before the change",
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "new_values": {
+                        "description": "Values after the change",
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "user_id": {
+                        "description": "ID of user who performed the action",
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "user_email": {
+                        "description": "Email of user who performed the action",
+                        "type": "string",
+                        "example": "admin@example.com",
+                        "nullable": true
+                    },
+                    "user_full_name": {
+                        "description": "Full name of user who performed the action",
+                        "type": "string",
+                        "example": "Jane Doe",
+                        "nullable": true
+                    },
+                    "ip_address": {
+                        "description": "IP address of the requester",
+                        "type": "string",
+                        "example": "127.0.0.1",
+                        "nullable": true
+                    },
+                    "user_agent": {
+                        "description": "User-Agent of the requester",
+                        "type": "string",
+                        "example": "Mozilla/5.0...",
+                        "nullable": true
+                    },
+                    "result": {
+                        "description": "Execution result",
+                        "type": "string",
+                        "example": "success",
+                        "enum": [
+                            "success",
+                            "failure",
+                            "denied"
+                        ]
+                    },
+                    "severity": {
+                        "description": "Event severity",
+                        "type": "string",
+                        "example": "info",
+                        "enum": [
+                            "info",
+                            "warning",
+                            "critical"
+                        ]
+                    },
+                    "request_id": {
+                        "description": "Request correlation ID",
+                        "type": "string",
+                        "example": "req_01HZY...",
+                        "nullable": true
+                    },
+                    "metadata": {
+                        "description": "Additional sanitized metadata",
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "description": "Log timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00"
+                    }
+                },
+                "type": "object"
+            },
+            "BookingResponse": {
+                "title": "Booking Response",
+                "required": [
+                    "id",
+                    "uuid",
+                    "total_amount",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "uuid": {
+                        "description": "uuid",
+                        "type": "string"
+                    },
+                    "user_id": {
+                        "description": "user_id",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "guest_email": {
+                        "description": "guest_email",
+                        "type": "string",
+                        "format": "email",
+                        "nullable": true
+                    },
+                    "total_amount": {
+                        "description": "total_amount",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "status": {
+                        "description": "status",
+                        "type": "string"
+                    },
+                    "reserved_until": {
+                        "description": "reserved_until",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "description": "Creation timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "EventResponse": {
+                "title": "Event Response",
+                "required": [
+                    "id",
+                    "uuid",
+                    "title",
+                    "event_type",
+                    "description",
+                    "start_time",
+                    "end_time",
+                    "venue",
+                    "capacity",
+                    "available_spots",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "uuid": {
+                        "description": "uuid",
+                        "type": "string"
+                    },
+                    "title": {
+                        "description": "title",
+                        "type": "string"
+                    },
+                    "event_type": {
+                        "description": "Programming type",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "description",
+                        "type": "string"
+                    },
+                    "start_time": {
+                        "description": "start_time",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "end_time": {
+                        "description": "end_time",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "venue": {
+                        "description": "venue",
+                        "type": "string"
+                    },
+                    "capacity": {
+                        "description": "capacity",
+                        "type": "integer"
+                    },
+                    "available_spots": {
+                        "description": "available_spots",
+                        "type": "integer"
+                    },
+                    "status": {
+                        "description": "status",
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "description": "Creation timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "TicketResponse": {
+                "title": "Ticket Response",
+                "required": [
+                    "id",
+                    "uuid",
+                    "booking_id",
+                    "ticket_type_id",
+                    "holder_name",
+                    "holder_email",
+                    "qr_code_token",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "uuid": {
+                        "description": "uuid",
+                        "type": "string"
+                    },
+                    "booking_id": {
+                        "description": "booking_id",
+                        "type": "integer"
+                    },
+                    "ticket_type_id": {
+                        "description": "ticket_type_id",
+                        "type": "integer"
+                    },
+                    "holder_name": {
+                        "description": "holder_name",
+                        "type": "string"
+                    },
+                    "holder_email": {
+                        "description": "holder_email",
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "qr_code_token": {
+                        "description": "qr_code_token",
+                        "type": "string"
+                    },
+                    "status": {
+                        "description": "status",
+                        "type": "string"
+                    },
+                    "checked_in_at": {
+                        "description": "checked_in_at",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "description": "Creation timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "TicketTypeResponse": {
+                "title": "TicketType Response",
+                "required": [
+                    "id",
+                    "event_id",
+                    "name",
+                    "price",
+                    "capacity",
+                    "available_spots",
+                    "sales_start",
+                    "sales_end"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "event_id": {
+                        "description": "event_id",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "name",
+                        "type": "string"
+                    },
+                    "price": {
+                        "description": "price",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "capacity": {
+                        "description": "capacity",
+                        "type": "integer"
+                    },
+                    "available_spots": {
+                        "description": "available_spots",
+                        "type": "integer"
+                    },
+                    "sales_start": {
+                        "description": "sales_start",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "sales_end": {
+                        "description": "sales_end",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "created_at": {
+                        "description": "Creation timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ItemResponse": {
+                "title": "Item Response",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "description",
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "description": "Creation timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "responses": {
+            "UnauthorizedResponse": {
+                "description": "Unauthorized - Invalid or missing authentication token",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "description": "Response status",
+                                    "type": "string",
+                                    "example": "error"
+                                },
+                                "message": {
+                                    "description": "Error message (localized by Accept-Language)",
+                                    "type": "string",
+                                    "example": "Unauthorized / No autorizado"
+                                },
+                                "errors": {
+                                    "description": "Error details",
+                                    "type": "object",
+                                    "nullable": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "ValidationErrorResponse": {
+                "description": "Validation Error - Request data failed validation",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "description": "Response status",
+                                    "type": "string",
+                                    "example": "error"
+                                },
+                                "message": {
+                                    "description": "Main error message (localized by Accept-Language)",
+                                    "type": "string",
+                                    "example": "Validation failed / Validacion fallida"
+                                },
+                                "errors": {
+                                    "description": "Field-specific error messages (localized by Accept-Language)",
+                                    "type": "object",
+                                    "example": {
+                                        "email": "Localized validation message"
+                                    }
+                                },
+                                "code": {
+                                    "description": "Error code",
+                                    "type": "integer",
+                                    "example": 422,
+                                    "nullable": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Enter your JWT token in the format: Bearer {token}",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            },
+            "appKeyAuth": {
+                "type": "apiKey",
+                "description": "Per-application API key issued by this server, used to authenticate the calling app (no user JWT required).",
+                "name": "X-App-Key",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Health",
+            "description": "Health and readiness endpoints"
+        },
+        {
+            "name": "Events",
+            "description": "Events"
+        },
+        {
+            "name": "Example",
+            "description": "Example"
+        }
+    ]
+}

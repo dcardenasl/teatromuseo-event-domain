@@ -1,0 +1,72 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\DTO\Response\Events;
+
+use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
+use OpenApi\Attributes as OA;
+
+#[OA\Schema(
+    schema: 'TicketTypeResponse',
+    title: 'TicketType Response',
+    required: ["id","event_id","name","price","capacity","available_spots","sales_start","sales_end"]
+)]
+final readonly class TicketTypeResponseDTO implements DataTransferObjectInterface
+{
+    public function __construct(
+        #[OA\Property(description: 'Unique identifier', example: 1)]
+        public int $id,
+        #[OA\Property(description: 'event_id', type: 'integer')]
+        public int $event_id,
+        #[OA\Property(description: 'name', type: 'string')]
+        public string $name,
+        #[OA\Property(description: 'price', type: 'number', format: 'float')]
+        public float $price,
+        #[OA\Property(description: 'capacity', type: 'integer')]
+        public int $capacity,
+        #[OA\Property(description: 'available_spots', type: 'integer')]
+        public int $available_spots,
+        #[OA\Property(description: 'sales_start', type: 'string', format: 'date-time')]
+        public string $sales_start,
+        #[OA\Property(description: 'sales_end', type: 'string', format: 'date-time')]
+        public string $sales_end,
+        #[OA\Property(property: 'created_at', description: 'Creation timestamp', example: '2026-02-26 12:00:00', nullable: true)]
+        public ?string $createdAt = null,
+        #[OA\Property(property: 'updated_at', description: 'Last update timestamp', example: '2026-02-26 12:00:00', nullable: true)]
+        public ?string $updatedAt = null
+    ) {
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return new static(
+            id: (int) ($data['id'] ?? 0),
+            event_id: (int) ($data['event_id'] ?? 0),
+            name: (string) ($data['name'] ?? ''),
+            price: (float) ($data['price'] ?? 0),
+            capacity: (int) ($data['capacity'] ?? 0),
+            available_spots: (int) ($data['available_spots'] ?? 0),
+            sales_start: (string) ($data['sales_start'] ?? ''),
+            sales_end: (string) ($data['sales_end'] ?? ''),
+            createdAt: isset($data['created_at']) ? (string) $data['created_at'] : null,
+            updatedAt: isset($data['updated_at']) ? (string) $data['updated_at'] : null,
+        );
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'event_id' => $this->event_id,
+            'name' => $this->name,
+            'price' => $this->price,
+            'capacity' => $this->capacity,
+            'available_spots' => $this->available_spots,
+            'sales_start' => $this->sales_start,
+            'sales_end' => $this->sales_end,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+        ];
+    }
+}
