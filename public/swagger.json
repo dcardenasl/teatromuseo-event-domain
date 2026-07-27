@@ -660,168 +660,6 @@
                 }
             }
         },
-        "/api/v1/example/items": {
-            "get": {
-                "tags": [
-                    "Example"
-                ],
-                "summary": "List Items",
-                "operationId": "a9c15f362c34bdf13d604b22b481f9f5",
-                "responses": {
-                    "200": {
-                        "description": "List retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ItemResponse"
-                                            }
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "tags": [
-                    "Example"
-                ],
-                "summary": "Create new Item",
-                "operationId": "040e356e83903d42ebfe0d5ee257d19d",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/ItemCreateRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Created successfully"
-                    },
-                    "422": {
-                        "description": "Validation error"
-                    }
-                }
-            }
-        },
-        "/api/v1/example/items/{id}": {
-            "get": {
-                "tags": [
-                    "Example"
-                ],
-                "summary": "Get Item by ID",
-                "operationId": "d69e979e9a4590f88f36d039d109b255",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ItemResponse"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not found"
-                    }
-                }
-            },
-            "put": {
-                "tags": [
-                    "Example"
-                ],
-                "summary": "Update existing Item",
-                "operationId": "7369cb73cf024be82e3f0a1103404728",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/ItemUpdateRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Updated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ItemResponse"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not found"
-                    },
-                    "422": {
-                        "description": "Validation error"
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "Example"
-                ],
-                "summary": "Delete Item by ID",
-                "operationId": "dd073e61a4304117c7d88d18d0844794",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Deleted successfully"
-                    },
-                    "404": {
-                        "description": "Not found"
-                    }
-                }
-            }
-        },
         "/health": {
             "get": {
                 "tags": [
@@ -961,26 +799,6 @@
     },
     "components": {
         "schemas": {
-            "AuthToken": {
-                "title": "Authentication Token",
-                "description": "JWT token with associated user data",
-                "required": [
-                    "token",
-                    "user"
-                ],
-                "properties": {
-                    "token": {
-                        "description": "JWT access token",
-                        "type": "string",
-                        "example": "eyJ0eXAiOiJKV1QiLCJhbGc..."
-                    },
-                    "user": {
-                        "description": "Authenticated user data",
-                        "type": "object"
-                    }
-                },
-                "type": "object"
-            },
             "BookingCreateRequest": {
                 "properties": {
                     "uuid": {
@@ -1356,35 +1174,6 @@
                         "description": "checked_in_at",
                         "type": "string",
                         "format": "date-time",
-                        "nullable": true
-                    }
-                },
-                "type": "object"
-            },
-            "ItemCreateRequest": {
-                "properties": {
-                    "name": {
-                        "description": "name",
-                        "type": "string"
-                    },
-                    "description": {
-                        "description": "description",
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "ItemIndexRequest": {},
-            "ItemUpdateRequest": {
-                "properties": {
-                    "name": {
-                        "description": "name",
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "description": {
-                        "description": "description",
-                        "type": "string",
                         "nullable": true
                     }
                 },
@@ -1775,41 +1564,6 @@
                     }
                 },
                 "type": "object"
-            },
-            "ItemResponse": {
-                "title": "Item Response",
-                "required": [
-                    "id",
-                    "name"
-                ],
-                "properties": {
-                    "id": {
-                        "description": "Unique identifier",
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "name": {
-                        "description": "name",
-                        "type": "string"
-                    },
-                    "description": {
-                        "description": "description",
-                        "type": "string"
-                    },
-                    "created_at": {
-                        "description": "Creation timestamp",
-                        "type": "string",
-                        "example": "2026-02-26 12:00:00",
-                        "nullable": true
-                    },
-                    "updated_at": {
-                        "description": "Last update timestamp",
-                        "type": "string",
-                        "example": "2026-02-26 12:00:00",
-                        "nullable": true
-                    }
-                },
-                "type": "object"
             }
         },
         "responses": {
@@ -1899,10 +1653,6 @@
         {
             "name": "Events",
             "description": "Events"
-        },
-        {
-            "name": "Example",
-            "description": "Example"
         }
     ]
 }

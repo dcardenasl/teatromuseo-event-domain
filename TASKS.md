@@ -46,10 +46,8 @@
 
 ## ⚪ Backlog
 
-- **[DOM-101]** Smoke tests: `DomainAuthFilterTest`, `HubClientTest`, `CreateItemTest` end-to-end con HubClient mockeado.
 - **[DOM-102]** ADR-001 documentando el hub-domain split (auth delegation, permission ownership, no users table aquí).
 - **[DOM-103]** `php spark domain:doctor` — comando diagnóstico que alcanza el hub y reporta status de introspect / service-token / register-permission.
-- **[DOM-105]** Strip `app/Documentation/Common/AuthTokenSchema.php` (leftover del clone de api-starter — referencia `UserResponse` schema inexistente, rompe `composer swagger-validate`).
 
 ---
 
