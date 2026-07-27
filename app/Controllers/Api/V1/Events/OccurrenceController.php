@@ -10,7 +10,6 @@ use App\DTO\Request\Events\OccurrenceUpdateRequestDTO;
 use App\Interfaces\Events\OccurrenceServiceInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Config\Services;
-use dcardenasl\Ci4ApiCore\Dto\SecurityContext;
 use dcardenasl\Ci4ApiCore\Http\ApiController;
 
 class OccurrenceController extends ApiController
@@ -30,64 +29,29 @@ class OccurrenceController extends ApiController
 
     public function index(): ResponseInterface
     {
-        return $this->handleRequest(
-            function (OccurrenceIndexRequestDTO $dto, SecurityContext $context): mixed {
-                if (!$context->hasPermission('occurrence.read')) {
-                    throw new \dcardenasl\Ci4ApiCore\Exceptions\AuthorizationException(lang('Api.forbidden'));
-                }
-                return $this->occurrenceService->index($dto, $context);
-            },
-            OccurrenceIndexRequestDTO::class
-        );
+        return $this->handleRequest('index', OccurrenceIndexRequestDTO::class);
     }
 
     public function create(): ResponseInterface
     {
-        return $this->handleRequest(
-            function (OccurrenceCreateRequestDTO $dto, SecurityContext $context): mixed {
-                if (!$context->hasPermission('occurrence.write')) {
-                    throw new \dcardenasl\Ci4ApiCore\Exceptions\AuthorizationException(lang('Api.forbidden'));
-                }
-                return $this->occurrenceService->store($dto, $context);
-            },
-            OccurrenceCreateRequestDTO::class
-        );
+        return $this->handleRequest('store', OccurrenceCreateRequestDTO::class);
     }
 
     public function update(int $id): ResponseInterface
     {
         return $this->handleRequest(
-            function (OccurrenceUpdateRequestDTO $dto, SecurityContext $context) use ($id): mixed {
-                if (!$context->hasPermission('occurrence.write')) {
-                    throw new \dcardenasl\Ci4ApiCore\Exceptions\AuthorizationException(lang('Api.forbidden'));
-                }
-                return $this->occurrenceService->update($id, $dto, $context);
-            },
+            fn ($dto, $context) => $this->occurrenceService->update($id, $dto, $context),
             OccurrenceUpdateRequestDTO::class
         );
     }
 
     public function show(int $id): ResponseInterface
     {
-        return $this->handleRequest(
-            function (array $dto, SecurityContext $context) use ($id): mixed {
-                if (!$context->hasPermission('occurrence.read')) {
-                    throw new \dcardenasl\Ci4ApiCore\Exceptions\AuthorizationException(lang('Api.forbidden'));
-                }
-                return $this->occurrenceService->show($id, $context);
-            }
-        );
+        return $this->handleRequest(fn ($dto, $context) => $this->occurrenceService->show($id, $context));
     }
 
     public function delete(int $id): ResponseInterface
     {
-        return $this->handleRequest(
-            function (array $dto, SecurityContext $context) use ($id): mixed {
-                if (!$context->hasPermission('occurrence.delete')) {
-                    throw new \dcardenasl\Ci4ApiCore\Exceptions\AuthorizationException(lang('Api.forbidden'));
-                }
-                return $this->occurrenceService->destroy($id, $context);
-            }
-        );
+        return $this->handleRequest(fn ($dto, $context) => $this->occurrenceService->destroy($id, $context));
     }
 }

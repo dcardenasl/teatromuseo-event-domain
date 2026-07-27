@@ -10,7 +10,6 @@ use App\DTO\Request\Events\VenueUpdateRequestDTO;
 use App\Interfaces\Events\VenueServiceInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Config\Services;
-use dcardenasl\Ci4ApiCore\Dto\SecurityContext;
 use dcardenasl\Ci4ApiCore\Http\ApiController;
 
 class VenueController extends ApiController
@@ -30,64 +29,29 @@ class VenueController extends ApiController
 
     public function index(): ResponseInterface
     {
-        return $this->handleRequest(
-            function (VenueIndexRequestDTO $dto, SecurityContext $context): mixed {
-                if (!$context->hasPermission('venue.read')) {
-                    throw new \dcardenasl\Ci4ApiCore\Exceptions\AuthorizationException(lang('Api.forbidden'));
-                }
-                return $this->venueService->index($dto, $context);
-            },
-            VenueIndexRequestDTO::class
-        );
+        return $this->handleRequest('index', VenueIndexRequestDTO::class);
     }
 
     public function create(): ResponseInterface
     {
-        return $this->handleRequest(
-            function (VenueCreateRequestDTO $dto, SecurityContext $context): mixed {
-                if (!$context->hasPermission('venue.write')) {
-                    throw new \dcardenasl\Ci4ApiCore\Exceptions\AuthorizationException(lang('Api.forbidden'));
-                }
-                return $this->venueService->store($dto, $context);
-            },
-            VenueCreateRequestDTO::class
-        );
+        return $this->handleRequest('store', VenueCreateRequestDTO::class);
     }
 
     public function update(int $id): ResponseInterface
     {
         return $this->handleRequest(
-            function (VenueUpdateRequestDTO $dto, SecurityContext $context) use ($id): mixed {
-                if (!$context->hasPermission('venue.write')) {
-                    throw new \dcardenasl\Ci4ApiCore\Exceptions\AuthorizationException(lang('Api.forbidden'));
-                }
-                return $this->venueService->update($id, $dto, $context);
-            },
+            fn ($dto, $context) => $this->venueService->update($id, $dto, $context),
             VenueUpdateRequestDTO::class
         );
     }
 
     public function show(int $id): ResponseInterface
     {
-        return $this->handleRequest(
-            function (array $dto, SecurityContext $context) use ($id): mixed {
-                if (!$context->hasPermission('venue.read')) {
-                    throw new \dcardenasl\Ci4ApiCore\Exceptions\AuthorizationException(lang('Api.forbidden'));
-                }
-                return $this->venueService->show($id, $context);
-            }
-        );
+        return $this->handleRequest(fn ($dto, $context) => $this->venueService->show($id, $context));
     }
 
     public function delete(int $id): ResponseInterface
     {
-        return $this->handleRequest(
-            function (array $dto, SecurityContext $context) use ($id): mixed {
-                if (!$context->hasPermission('venue.delete')) {
-                    throw new \dcardenasl\Ci4ApiCore\Exceptions\AuthorizationException(lang('Api.forbidden'));
-                }
-                return $this->venueService->destroy($id, $context);
-            }
-        );
+        return $this->handleRequest(fn ($dto, $context) => $this->venueService->destroy($id, $context));
     }
 }

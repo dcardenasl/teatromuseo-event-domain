@@ -10,7 +10,6 @@ use App\DTO\Request\Events\EventReferenceUpdateRequestDTO;
 use App\Interfaces\Events\EventReferenceServiceInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Config\Services;
-use dcardenasl\Ci4ApiCore\Dto\SecurityContext;
 use dcardenasl\Ci4ApiCore\Http\ApiController;
 
 class EventReferenceController extends ApiController
@@ -30,64 +29,29 @@ class EventReferenceController extends ApiController
 
     public function index(): ResponseInterface
     {
-        return $this->handleRequest(
-            function (EventReferenceIndexRequestDTO $dto, SecurityContext $context): mixed {
-                if (!$context->hasPermission('eventReference.read')) {
-                    throw new \dcardenasl\Ci4ApiCore\Exceptions\AuthorizationException(lang('Api.forbidden'));
-                }
-                return $this->eventReferenceService->index($dto, $context);
-            },
-            EventReferenceIndexRequestDTO::class
-        );
+        return $this->handleRequest('index', EventReferenceIndexRequestDTO::class);
     }
 
     public function create(): ResponseInterface
     {
-        return $this->handleRequest(
-            function (EventReferenceCreateRequestDTO $dto, SecurityContext $context): mixed {
-                if (!$context->hasPermission('eventReference.write')) {
-                    throw new \dcardenasl\Ci4ApiCore\Exceptions\AuthorizationException(lang('Api.forbidden'));
-                }
-                return $this->eventReferenceService->store($dto, $context);
-            },
-            EventReferenceCreateRequestDTO::class
-        );
+        return $this->handleRequest('store', EventReferenceCreateRequestDTO::class);
     }
 
     public function update(int $id): ResponseInterface
     {
         return $this->handleRequest(
-            function (EventReferenceUpdateRequestDTO $dto, SecurityContext $context) use ($id): mixed {
-                if (!$context->hasPermission('eventReference.write')) {
-                    throw new \dcardenasl\Ci4ApiCore\Exceptions\AuthorizationException(lang('Api.forbidden'));
-                }
-                return $this->eventReferenceService->update($id, $dto, $context);
-            },
+            fn ($dto, $context) => $this->eventReferenceService->update($id, $dto, $context),
             EventReferenceUpdateRequestDTO::class
         );
     }
 
     public function show(int $id): ResponseInterface
     {
-        return $this->handleRequest(
-            function (array $dto, SecurityContext $context) use ($id): mixed {
-                if (!$context->hasPermission('eventReference.read')) {
-                    throw new \dcardenasl\Ci4ApiCore\Exceptions\AuthorizationException(lang('Api.forbidden'));
-                }
-                return $this->eventReferenceService->show($id, $context);
-            }
-        );
+        return $this->handleRequest(fn ($dto, $context) => $this->eventReferenceService->show($id, $context));
     }
 
     public function delete(int $id): ResponseInterface
     {
-        return $this->handleRequest(
-            function (array $dto, SecurityContext $context) use ($id): mixed {
-                if (!$context->hasPermission('eventReference.delete')) {
-                    throw new \dcardenasl\Ci4ApiCore\Exceptions\AuthorizationException(lang('Api.forbidden'));
-                }
-                return $this->eventReferenceService->destroy($id, $context);
-            }
-        );
+        return $this->handleRequest(fn ($dto, $context) => $this->eventReferenceService->destroy($id, $context));
     }
 }
