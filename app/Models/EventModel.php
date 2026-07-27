@@ -32,7 +32,9 @@ class EventModel extends BaseAuditableModel
     protected array $sortableFields = ['id', 'created_at', 'title', 'event_type', 'start_time', 'end_time', 'venue', 'capacity', 'available_spots', 'status'];
 
     protected $validationRules = [
-        'uuid' => 'required|string|max_length[255]|is_unique[events.uuid]',
+        // The model owns UUID generation. Keeping this optional at validation
+        // time allows the beforeInsert hook to create it atomically.
+        'uuid' => 'permit_empty|string|max_length[255]|is_unique[events.uuid]',
         'title' => 'required|string|max_length[255]',
         'event_type' => 'required|in_list[function,festival,course,workshop,other]',
         'description' => 'required|string',
