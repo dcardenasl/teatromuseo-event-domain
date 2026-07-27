@@ -12,6 +12,8 @@ readonly class TicketTypeUpdateRequestDTO extends BaseRequestDTO
 {
     #[OA\Property(description: 'event_id', type: 'integer', nullable: true)]
     public ?int $event_id;
+    #[OA\Property(description: 'Concrete scheduled occurrence', type: 'integer', nullable: true)]
+    public ?int $occurrence_id;
     #[OA\Property(description: 'name', type: 'string', nullable: true)]
     public ?string $name;
     #[OA\Property(description: 'price', type: 'number', format: 'float', nullable: true)]
@@ -29,6 +31,7 @@ readonly class TicketTypeUpdateRequestDTO extends BaseRequestDTO
     {
         return [
             'event_id' => 'permit_empty|is_natural_no_zero|is_not_unique[events.id]',
+            'occurrence_id' => 'permit_empty|is_natural_no_zero|is_not_unique[occurrences.id]',
             'name' => 'permit_empty|string|max_length[255]',
             'price' => 'permit_empty|decimal',
             'capacity' => 'permit_empty|integer',
@@ -41,6 +44,7 @@ readonly class TicketTypeUpdateRequestDTO extends BaseRequestDTO
     protected function map(array $data): void
     {
         $this->event_id = isset($data['event_id']) ? (int) $data['event_id'] : null;
+        $this->occurrence_id = isset($data['occurrence_id']) ? (int) $data['occurrence_id'] : null;
         $this->name = $data['name'] ?? null;
         $this->price = isset($data['price']) ? (float) $data['price'] : null;
         $this->capacity = isset($data['capacity']) ? (int) $data['capacity'] : null;
@@ -53,6 +57,7 @@ readonly class TicketTypeUpdateRequestDTO extends BaseRequestDTO
     {
         return array_filter([
             'event_id' => $this->event_id,
+            'occurrence_id' => $this->occurrence_id,
             'name' => $this->name,
             'price' => $this->price,
             'capacity' => $this->capacity,

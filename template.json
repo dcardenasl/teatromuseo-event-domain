@@ -217,7 +217,7 @@
       "module": "TicketTypes",
       "api_path": "/events/ticket-types",
       "service": "event-domain",
-      "fields": "event_id:relation:required:events,name:string:required,price:decimal:required,capacity:int:required,available_spots:int:required,sales_start:datetime:required,sales_end:datetime:required"
+      "fields": "event_id:relation:required:events,occurrence_id:relation:occurrences,name:string:required,price:decimal:required,capacity:int:required,available_spots:int:required,sales_start:datetime:required,sales_end:datetime:required"
     },
     {
       "resource": "Booking",

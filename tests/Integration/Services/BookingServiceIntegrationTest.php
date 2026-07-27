@@ -7,6 +7,7 @@ namespace Tests\Integration\Services;
 use App\DTO\Request\Events\BookingCreateRequestDTO;
 use App\DTO\Request\Events\BookingUpdateRequestDTO;
 use App\Models\EventModel;
+use App\Models\OccurrenceModel;
 use App\Models\TicketModel;
 use App\Models\TicketTypeModel;
 use CodeIgniter\Test\CIUnitTestCase;
@@ -175,5 +176,54 @@ final class BookingServiceIntegrationTest extends CIUnitTestCase
         $this->expectExceptionMessage(lang('Bookings.ticket_type_sold_out'));
 
         $bookingService->store($createDto);
+    }
+
+    public function testOccurrenceInventoryIsUsedWhenTicketTypeIsScheduled(): void
+    {
+        $occurrenceModel = model(OccurrenceModel::class);
+        $occurrenceId = (int) $occurrenceModel->insert([
+            'event_id'        => $this->eventId,
+            'start_time'      => '2026-08-15 20:00:00',
+            'end_time'        => '2026-08-15 23:00:00',
+            'status'          => 'published',
+            'capacity'        => 2,
+            'available_spots' => 2,
+        ]);
+
+        $ticketTypeModel = model(TicketTypeModel::class);
+        $ticketTypeId = (int) $ticketTypeModel->insert([
+            'event_id'        => $this->eventId,
+            'occurrence_id'   => $occurrenceId,
+            'name'            => 'Scheduled admission',
+            'price'           => 25.00,
+            'capacity'        => 2,
+            'available_spots' => 2,
+            'sales_start'     => '2026-01-01 00:00:00',
+            'sales_end'       => '2026-08-14 23:59:59',
+        ]);
+
+        $dtoFactory = Services::requestDtoFactory();
+        $bookingResponse = Services::bookingService()->store($dtoFactory->make(BookingCreateRequestDTO::class, [
+            'ticket_type_id' => $ticketTypeId,
+            'quantity'       => 2,
+            'guest_email'    => 'scheduled@example.com',
+            'holder_name'    => 'Scheduled guest',
+            'holder_email'   => 'scheduled@example.com',
+            'total_amount'   => 0.00,
+            'status'         => 'draft',
+        ]));
+
+        $this->assertSame(10, (int) model(EventModel::class)->find($this->eventId)->available_spots);
+        $this->assertSame(0, (int) $occurrenceModel->find($occurrenceId)->available_spots);
+        $this->assertSame(0, (int) $ticketTypeModel->find($ticketTypeId)->available_spots);
+
+        Services::bookingService()->update(
+            (int) $bookingResponse->toArray()['id'],
+            $dtoFactory->make(BookingUpdateRequestDTO::class, ['status' => 'cancelled']),
+        );
+
+        $this->assertSame(10, (int) model(EventModel::class)->find($this->eventId)->available_spots);
+        $this->assertSame(2, (int) $occurrenceModel->find($occurrenceId)->available_spots);
+        $this->assertSame(2, (int) $ticketTypeModel->find($ticketTypeId)->available_spots);
     }
 }

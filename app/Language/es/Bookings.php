@@ -20,4 +20,6 @@ return [
     'ticket_type_sold_out'  => 'No hay suficientes espacios disponibles en esta categoría de ticket.',
     'event_not_found'       => 'Evento no encontrado.',
     'event_sold_out'        => 'No hay suficientes espacios disponibles para el evento.',
+    'occurrence_not_found'  => 'Función programada no encontrada.',
+    'occurrence_sold_out'   => 'No hay suficientes espacios disponibles para la función programada.',
 ];

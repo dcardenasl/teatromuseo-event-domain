@@ -19,6 +19,8 @@ final readonly class TicketTypeResponseDTO implements DataTransferObjectInterfac
         public int $id,
         #[OA\Property(description: 'event_id', type: 'integer')]
         public int $event_id,
+        #[OA\Property(description: 'Concrete scheduled occurrence', type: 'integer', nullable: true)]
+        public ?int $occurrence_id,
         #[OA\Property(description: 'name', type: 'string')]
         public string $name,
         #[OA\Property(description: 'price', type: 'number', format: 'float')]
@@ -43,6 +45,7 @@ final readonly class TicketTypeResponseDTO implements DataTransferObjectInterfac
         return new static(
             id: (int) ($data['id'] ?? 0),
             event_id: (int) ($data['event_id'] ?? 0),
+            occurrence_id: isset($data['occurrence_id']) ? (int) $data['occurrence_id'] : null,
             name: (string) ($data['name'] ?? ''),
             price: (float) ($data['price'] ?? 0),
             capacity: (int) ($data['capacity'] ?? 0),
@@ -59,6 +62,7 @@ final readonly class TicketTypeResponseDTO implements DataTransferObjectInterfac
         return [
             'id' => $this->id,
             'event_id' => $this->event_id,
+            'occurrence_id' => $this->occurrence_id,
             'name' => $this->name,
             'price' => $this->price,
             'capacity' => $this->capacity,

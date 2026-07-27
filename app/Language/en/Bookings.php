@@ -20,4 +20,6 @@ return [
     'ticket_type_sold_out'  => 'Not enough ticket category spots available.',
     'event_not_found'       => 'Event not found.',
     'event_sold_out'        => 'Not enough event spots available.',
+    'occurrence_not_found'  => 'Scheduled occurrence not found.',
+    'occurrence_sold_out'   => 'Not enough scheduled occurrence spots available.',
 ];

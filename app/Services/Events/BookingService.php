@@ -71,7 +71,18 @@ class BookingService extends BaseCrudService implements BookingServiceInterface
             throw new BadRequestException(lang('Bookings.ticket_type_sold_out'));
         }
 
-        if ($event->available_spots < $quantity) {
+        $occurrence = null;
+        if (! empty($ticketType->occurrence_id)) {
+            $occurrence = model(\App\Models\OccurrenceModel::class)->find($ticketType->occurrence_id);
+
+            if (! $occurrence) {
+                throw new BadRequestException(lang('Bookings.occurrence_not_found'));
+            }
+
+            if ($occurrence->available_spots < $quantity) {
+                throw new BadRequestException(lang('Bookings.occurrence_sold_out'));
+            }
+        } elseif ($event->available_spots < $quantity) {
             throw new BadRequestException(lang('Bookings.event_sold_out'));
         }
 
@@ -82,10 +93,17 @@ class BookingService extends BaseCrudService implements BookingServiceInterface
             ->set('available_spots', "available_spots - {$quantity}", false)
             ->update();
 
-        $db->table('events')
-            ->where('id', $ticketType->event_id)
-            ->set('available_spots', "available_spots - {$quantity}", false)
-            ->update();
+        if ($occurrence) {
+            $db->table('occurrences')
+                ->where('id', $occurrence->id)
+                ->set('available_spots', "available_spots - {$quantity}", false)
+                ->update();
+        } else {
+            $db->table('events')
+                ->where('id', $ticketType->event_id)
+                ->set('available_spots', "available_spots - {$quantity}", false)
+                ->update();
+        }
 
         // Calculate backend total amount to prevent client tampering
         $totalAmount = (float) ($ticketType->price * $quantity);
@@ -195,11 +213,17 @@ class BookingService extends BaseCrudService implements BookingServiceInterface
                             ->set('available_spots', "available_spots + {$qty}", false)
                             ->update();
 
-                        // Increment events spots
-                        $db->table('events')
-                            ->where('id', $ticketType->event_id)
-                            ->set('available_spots', "available_spots + {$qty}", false)
-                            ->update();
+                        if (! empty($ticketType->occurrence_id)) {
+                            $db->table('occurrences')
+                                ->where('id', $ticketType->occurrence_id)
+                                ->set('available_spots', "available_spots + {$qty}", false)
+                                ->update();
+                        } else {
+                            $db->table('events')
+                                ->where('id', $ticketType->event_id)
+                                ->set('available_spots', "available_spots + {$qty}", false)
+                                ->update();
+                        }
                     }
                 }
 
