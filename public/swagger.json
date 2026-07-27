@@ -2118,11 +2118,6 @@
                     "title",
                     "event_type",
                     "description",
-                    "start_time",
-                    "end_time",
-                    "venue",
-                    "capacity",
-                    "available_spots",
                     "status"
                 ],
                 "properties": {

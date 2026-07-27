@@ -10,7 +10,7 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(
     schema: 'EventResponse',
     title: 'Event Response',
-    required: ["id","uuid","title","event_type","description","start_time","end_time","venue","capacity","available_spots","status"]
+    required: ["id","uuid","title","event_type","description","status"]
 )]
 final readonly class EventResponseDTO implements DataTransferObjectInterface
 {
@@ -26,15 +26,15 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
         #[OA\Property(description: 'description', type: 'string')]
         public string $description,
         #[OA\Property(description: 'start_time', type: 'string', format: 'date-time')]
-        public string $start_time,
+        public ?string $start_time,
         #[OA\Property(description: 'end_time', type: 'string', format: 'date-time')]
-        public string $end_time,
+        public ?string $end_time,
         #[OA\Property(description: 'venue', type: 'string')]
-        public string $venue,
+        public ?string $venue,
         #[OA\Property(description: 'capacity', type: 'integer')]
-        public int $capacity,
+        public ?int $capacity,
         #[OA\Property(description: 'available_spots', type: 'integer')]
-        public int $available_spots,
+        public ?int $available_spots,
         #[OA\Property(description: 'status', type: 'string')]
         public string $status,
         #[OA\Property(property: 'created_at', description: 'Creation timestamp', example: '2026-02-26 12:00:00', nullable: true)]
@@ -52,11 +52,11 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
             title: (string) ($data['title'] ?? ''),
             event_type: (string) ($data['event_type'] ?? 'function'),
             description: (string) ($data['description'] ?? ''),
-            start_time: (string) ($data['start_time'] ?? ''),
-            end_time: (string) ($data['end_time'] ?? ''),
-            venue: (string) ($data['venue'] ?? ''),
-            capacity: (int) ($data['capacity'] ?? 0),
-            available_spots: (int) ($data['available_spots'] ?? 0),
+            start_time: isset($data['start_time']) ? (string) $data['start_time'] : null,
+            end_time: isset($data['end_time']) ? (string) $data['end_time'] : null,
+            venue: isset($data['venue']) ? (string) $data['venue'] : null,
+            capacity: isset($data['capacity']) ? (int) $data['capacity'] : null,
+            available_spots: isset($data['available_spots']) ? (int) $data['available_spots'] : null,
             status: (string) ($data['status'] ?? ''),
             createdAt: isset($data['created_at']) ? (string) $data['created_at'] : null,
             updatedAt: isset($data['updated_at']) ? (string) $data['updated_at'] : null,

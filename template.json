@@ -105,11 +105,6 @@
         },
         { "name": "event_type", "type": "string", "label": "Programming Type", "help": "Classifies the activity as a function, festival, course, workshop, or other program.", "required": true },
         { "name": "description", "type": "text", "label": "Description", "placeholder": "Explain what attendees can expect...", "help": "Long-form event description for the detail page.", "required": true },
-        { "name": "start_time", "type": "string", "label": "Start Time", "help": "When the event starts.", "required": true },
-        { "name": "end_time", "type": "string", "label": "End Time", "help": "When the event ends.", "required": true },
-        { "name": "venue", "type": "string", "label": "Venue", "placeholder": "Convention Center", "help": "Physical or virtual location of the event.", "required": true },
-        { "name": "capacity", "type": "integer", "label": "Capacity", "help": "Maximum number of attendees allowed.", "required": true },
-        { "name": "available_spots", "type": "integer", "label": "Available Spots", "help": "Remaining tickets or seats available.", "required": true },
         { "name": "status", "type": "string", "label": "Status", "help": "Controls whether the event is draft, published, or cancelled.", "required": true }
       ]
     },
@@ -189,7 +184,7 @@
       "module": "Events",
       "api_path": "/events/events",
       "service": "event-domain",
-      "fields": "uuid:string:required,title:string:required,event_type:enum:required:function|festival|course|workshop|other,description:text:required,start_time:datetime:required,end_time:datetime:required,venue:string:required,capacity:int:required,available_spots:int:required,status:enum:required:draft|published|cancelled"
+      "fields": "uuid:string:required,title:string:required,event_type:enum:required:function|festival|course|workshop|other,description:text:required,status:enum:required:draft|published|cancelled"
     },
     {
       "resource": "Venue",

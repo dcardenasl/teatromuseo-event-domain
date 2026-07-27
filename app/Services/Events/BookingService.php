@@ -82,7 +82,7 @@ class BookingService extends BaseCrudService implements BookingServiceInterface
             if ($occurrence->available_spots < $quantity) {
                 throw new BadRequestException(lang('Bookings.occurrence_sold_out'));
             }
-        } elseif ($event->available_spots < $quantity) {
+        } elseif ($event->available_spots === null || $event->available_spots < $quantity) {
             throw new BadRequestException(lang('Bookings.event_sold_out'));
         }
 

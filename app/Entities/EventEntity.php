@@ -14,11 +14,11 @@ class EventEntity extends Entity
         'title' => 'string',
         'event_type' => 'string',
         'description' => 'string',
-        'start_time' => 'string',
-        'end_time' => 'string',
-        'venue' => 'string',
-        'capacity' => 'int',
-        'available_spots' => 'int',
+        'start_time' => '?string',
+        'end_time' => '?string',
+        'venue' => '?string',
+        'capacity' => '?int',
+        'available_spots' => '?int',
         'status' => 'string',
     ];
 

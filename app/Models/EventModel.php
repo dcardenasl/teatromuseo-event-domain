@@ -36,11 +36,11 @@ class EventModel extends BaseAuditableModel
         'title' => 'required|string|max_length[255]',
         'event_type' => 'required|in_list[function,festival,course,workshop,other]',
         'description' => 'required|string',
-        'start_time' => 'required|valid_date',
-        'end_time' => 'required|valid_date',
-        'venue' => 'required|string|max_length[255]',
-        'capacity' => 'required|integer',
-        'available_spots' => 'required|integer',
+        'start_time' => 'permit_empty|valid_date',
+        'end_time' => 'permit_empty|valid_date',
+        'venue' => 'permit_empty|string|max_length[255]',
+        'capacity' => 'permit_empty|integer',
+        'available_spots' => 'permit_empty|integer',
     ];
 
     protected $beforeInsert = ['generateUuid'];
