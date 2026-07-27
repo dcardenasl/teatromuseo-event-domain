@@ -12,8 +12,11 @@ trait EventsDomainServices
             return static::getSharedInstance('localizedTranslationStore');
         }
 
+        $request = \Config\Services::request();
+
         return new \App\Libraries\Localization\LocalizedTranslationStore(
-            new \App\Models\EventTranslationModel()
+            new \App\Models\EventTranslationModel(),
+            $request instanceof \CodeIgniter\HTTP\IncomingRequest ? $request : null
         );
     }
 

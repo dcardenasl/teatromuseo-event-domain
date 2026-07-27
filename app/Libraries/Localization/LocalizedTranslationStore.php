@@ -16,8 +16,10 @@ use dcardenasl\Ci4ApiCore\Exceptions\BadRequestException;
  */
 final class LocalizedTranslationStore
 {
-    public function __construct(private EventTranslationModel $model)
-    {
+    public function __construct(
+        private EventTranslationModel $model,
+        private ?IncomingRequest $request = null
+    ) {
     }
 
     /**
@@ -374,15 +376,7 @@ final class LocalizedTranslationStore
      */
     private function requestedLocales(): array
     {
-        $header = '';
-        try {
-            $request = service('request');
-            if ($request instanceof IncomingRequest) {
-                $header = $request->getHeaderLine('Accept-Language');
-            }
-        } catch (\Throwable) {
-            // CLI/service-only calls have no HTTP request; use fallback below.
-        }
+        $header = $this->request?->getHeaderLine('Accept-Language') ?? '';
 
         $weightedLocales = [];
         foreach (explode(',', $header) as $part) {

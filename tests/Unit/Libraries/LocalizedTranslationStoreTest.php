@@ -6,6 +6,7 @@ namespace Tests\Unit\Libraries;
 
 use App\Libraries\Localization\LocalizedTranslationStore;
 use App\Models\EventTranslationModel;
+use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\Test\CIUnitTestCase;
 use dcardenasl\Ci4ApiCore\Exceptions\BadRequestException;
 
@@ -63,5 +64,31 @@ final class LocalizedTranslationStoreTest extends CIUnitTestCase
     {
         $this->expectException(BadRequestException::class);
         $this->store->normalize('unknown', [['locale' => 'es', 'title' => 'No']]);
+    }
+
+    public function testResolvePrefersTheAcceptLanguageHeaderOverTheFallbackLocale(): void
+    {
+        $request = $this->createMock(IncomingRequest::class);
+        $request->method('getHeaderLine')->with('Accept-Language')->willReturn('en');
+
+        $store = new LocalizedTranslationStore(new EventTranslationModel(), $request);
+
+        $resolved = $store->resolve('event', [
+            ['locale' => 'es', 'fields' => ['title' => 'Festival de invierno', 'description' => 'Descripción']],
+            ['locale' => 'en', 'fields' => ['title' => 'Winter festival', 'description' => 'Description']],
+        ], []);
+
+        $this->assertSame('en', $resolved['locale']);
+        $this->assertSame('Winter festival', $resolved['title']);
+    }
+
+    public function testResolveFallsBackToTheLegacyLocaleWithoutARequest(): void
+    {
+        $resolved = $this->store->resolve('event', [
+            ['locale' => 'es', 'fields' => ['title' => 'Festival de invierno', 'description' => 'Descripción']],
+        ], []);
+
+        $this->assertSame('es', $resolved['locale']);
+        $this->assertSame('Festival de invierno', $resolved['title']);
     }
 }
