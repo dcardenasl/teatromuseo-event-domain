@@ -91,7 +91,7 @@ printf "You need: hub URL, an X-App-Key bound to a registered application,\n"
 printf "and the application code.\n\n"
 
 HUB_URL="$(ask_with_default 'Hub URL' "${CI4_DOMAIN_HUB_URL:-http://localhost:8180}")"
-HUB_APP_CODE="$(ask_with_default 'Application code (registered in hub)' "${CI4_DOMAIN_APP_CODE:-events}")"
+HUB_APP_CODE="$(ask_with_default 'Application code (registered in hub)' "${CI4_DOMAIN_APP_CODE:-event}")"
 
 # Allow ci4-kickstart (and CI) to pre-supply the X-App-Key via env var so this
 # script runs non-interactively. Falls back to a prompt for standalone runs.

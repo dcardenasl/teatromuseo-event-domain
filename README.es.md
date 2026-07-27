@@ -9,6 +9,8 @@
 
 Aplicación de dominio CodeIgniter 4 para la programación y operación de eventos de Teatro Museo. Posee su propia lógica de negocio y base de datos, pero **delega autenticación, usuarios e IAM al API central** (`teatromuseo-api`).
 
+El código de aplicación registrado en el hub es **`event`**. El plural `events` se reserva para el namespace de recursos y las tablas de la base de datos.
+
 ```mermaid
 flowchart LR
     Cliente["Navegador / SPA"]

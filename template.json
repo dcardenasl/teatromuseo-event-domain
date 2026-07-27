@@ -1,5 +1,5 @@
 {
-  "name": "Teatro Museo Events Domain",
+  "name": "Teatro Museo Event Domain",
   "slug": "teatromuseo-event-domain",
   "repo": "dcardenasl/teatromuseo-event-domain",
   "type": "domain-template",
@@ -29,7 +29,7 @@
       "domain": "teatromuseo_event_domain",
       "domain_test": "teatromuseo_event_domain_test"
     },
-    "domain_app_code": "events"
+    "domain_app_code": "event"
   },
   "entities": [
     {

@@ -9,6 +9,8 @@
 
 CodeIgniter 4 domain application for Teatro Museo event programming and operations. It owns its business logic and database, but **delegates authentication, users, and IAM to the central API** (`teatromuseo-api`).
 
+The registered hub application code is **`event`**. The plural `events` is reserved for the resource namespace and database tables.
+
 ```mermaid
 flowchart LR
     Client["Browser / SPA"]
