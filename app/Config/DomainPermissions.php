@@ -36,5 +36,14 @@ class DomainPermissions
         ['code' => 'tickets.read', 'resource' => 'tickets', 'action' => 'read', 'description' => 'Read Tickets'],
         ['code' => 'tickets.write', 'resource' => 'tickets', 'action' => 'write', 'description' => 'Create or update Tickets'],
         ['code' => 'tickets.delete', 'resource' => 'tickets', 'action' => 'delete', 'description' => 'Delete Tickets'],
+        ['code' => 'venues.read', 'resource' => 'venues', 'action' => 'read', 'description' => 'Read Venues'],
+        ['code' => 'venues.write', 'resource' => 'venues', 'action' => 'write', 'description' => 'Create or update Venues'],
+        ['code' => 'venues.delete', 'resource' => 'venues', 'action' => 'delete', 'description' => 'Delete Venues'],
+        ['code' => 'occurrences.read', 'resource' => 'occurrences', 'action' => 'read', 'description' => 'Read Occurrences'],
+        ['code' => 'occurrences.write', 'resource' => 'occurrences', 'action' => 'write', 'description' => 'Create or update Occurrences'],
+        ['code' => 'occurrences.delete', 'resource' => 'occurrences', 'action' => 'delete', 'description' => 'Delete Occurrences'],
+        ['code' => 'event-references.read', 'resource' => 'event-references', 'action' => 'read', 'description' => 'Read Event References'],
+        ['code' => 'event-references.write', 'resource' => 'event-references', 'action' => 'write', 'description' => 'Create or update Event References'],
+        ['code' => 'event-references.delete', 'resource' => 'event-references', 'action' => 'delete', 'description' => 'Delete Event References'],
     ];
 }

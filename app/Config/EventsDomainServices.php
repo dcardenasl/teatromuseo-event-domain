@@ -62,4 +62,46 @@ trait EventsDomainServices
         }
         return new \App\Services\Events\TicketService(new \dcardenasl\Ci4ApiCore\Repositories\GenericRepository(model(\App\Models\TicketModel::class)), static::ticketResponseMapper());
     }
+    public static function venueResponseMapper(bool $getShared = true): \dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface
+    {
+        if ($getShared) {
+            return static::getSharedInstance('venueResponseMapper');
+        }
+        return new \dcardenasl\Ci4ApiCore\Mappers\DtoResponseMapper(\App\DTO\Response\Events\VenueResponseDTO::class);
+    }
+    public static function venueService(bool $getShared = true): \App\Interfaces\Events\VenueServiceInterface
+    {
+        if ($getShared) {
+            return static::getSharedInstance('venueService');
+        }
+        return new \App\Services\Events\VenueService(new \dcardenasl\Ci4ApiCore\Repositories\GenericRepository(model(\App\Models\VenueModel::class)), static::venueResponseMapper());
+    }
+    public static function occurrenceResponseMapper(bool $getShared = true): \dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface
+    {
+        if ($getShared) {
+            return static::getSharedInstance('occurrenceResponseMapper');
+        }
+        return new \dcardenasl\Ci4ApiCore\Mappers\DtoResponseMapper(\App\DTO\Response\Events\OccurrenceResponseDTO::class);
+    }
+    public static function occurrenceService(bool $getShared = true): \App\Interfaces\Events\OccurrenceServiceInterface
+    {
+        if ($getShared) {
+            return static::getSharedInstance('occurrenceService');
+        }
+        return new \App\Services\Events\OccurrenceService(new \dcardenasl\Ci4ApiCore\Repositories\GenericRepository(model(\App\Models\OccurrenceModel::class)), static::occurrenceResponseMapper());
+    }
+    public static function eventReferenceResponseMapper(bool $getShared = true): \dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface
+    {
+        if ($getShared) {
+            return static::getSharedInstance('eventReferenceResponseMapper');
+        }
+        return new \dcardenasl\Ci4ApiCore\Mappers\DtoResponseMapper(\App\DTO\Response\Events\EventReferenceResponseDTO::class);
+    }
+    public static function eventReferenceService(bool $getShared = true): \App\Interfaces\Events\EventReferenceServiceInterface
+    {
+        if ($getShared) {
+            return static::getSharedInstance('eventReferenceService');
+        }
+        return new \App\Services\Events\EventReferenceService(new \dcardenasl\Ci4ApiCore\Repositories\GenericRepository(model(\App\Models\EventReferenceModel::class)), static::eventReferenceResponseMapper());
+    }
 }

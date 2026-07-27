@@ -336,6 +336,330 @@
                 }
             }
         },
+        "/api/v1/events/event-references": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "List EventReferences",
+                "operationId": "106957b9b2ad516f9a12eac7eec9a0b4",
+                "responses": {
+                    "200": {
+                        "description": "List retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/EventReferenceResponse"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Create new EventReference",
+                "operationId": "0dfe97c4141664b78e642e990d741b55",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EventReferenceCreateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/events/event-references/{id}": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get EventReference by ID",
+                "operationId": "9093845e9ef4c9b103ed93819b50a9e2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EventReferenceResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Update existing EventReference",
+                "operationId": "8e012bf749d4f40d59577cd1176abb6c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EventReferenceUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EventReferenceResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Delete EventReference by ID",
+                "operationId": "a8933144e69d136dff416b33730aa315",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted successfully"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/events/occurrences": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "List Occurrences",
+                "operationId": "fb0327f340ba2df408c4e2cc110227ff",
+                "responses": {
+                    "200": {
+                        "description": "List retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/OccurrenceResponse"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Create new Occurrence",
+                "operationId": "d355a231cd9b46b40974eca494b287a1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OccurrenceCreateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/events/occurrences/{id}": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get Occurrence by ID",
+                "operationId": "1e1d9dcea32a7aa5456b6c62771a0ad4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OccurrenceResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Update existing Occurrence",
+                "operationId": "1b18a1a10539bc86b879110a2c271c08",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OccurrenceUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OccurrenceResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Delete Occurrence by ID",
+                "operationId": "08b198aedd5586e51a25d7d6661414cd",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted successfully"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
         "/api/v1/events/tickets": {
             "get": {
                 "tags": [
@@ -660,6 +984,168 @@
                 }
             }
         },
+        "/api/v1/events/venues": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "List Venues",
+                "operationId": "bead578f9b3ecec00ce4fc11cc05a6dd",
+                "responses": {
+                    "200": {
+                        "description": "List retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/VenueResponse"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Create new Venue",
+                "operationId": "3a17427a79212d7df9430b94b647368f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VenueCreateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/events/venues/{id}": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get Venue by ID",
+                "operationId": "4e022d4448975540a40606f52ba76ec3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VenueResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Update existing Venue",
+                "operationId": "5f93fb2dcf72c9aa33f0777aae661586",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VenueUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VenueResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Delete Venue by ID",
+                "operationId": "4937c5c44c0eb19dc5fca384c0fb2e5f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted successfully"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "tags": [
@@ -947,6 +1433,72 @@
                 "type": "object"
             },
             "EventIndexRequest": {},
+            "EventReferenceCreateRequest": {
+                "properties": {
+                    "event_id": {
+                        "description": "event_id",
+                        "type": "integer"
+                    },
+                    "source_system": {
+                        "description": "source_system",
+                        "type": "string"
+                    },
+                    "source_type": {
+                        "description": "source_type",
+                        "type": "string"
+                    },
+                    "source_id": {
+                        "description": "source_id",
+                        "type": "string"
+                    },
+                    "relation": {
+                        "description": "relation",
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "description": "metadata",
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "EventReferenceIndexRequest": {},
+            "EventReferenceUpdateRequest": {
+                "properties": {
+                    "event_id": {
+                        "description": "event_id",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "source_system": {
+                        "description": "source_system",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "source_type": {
+                        "description": "source_type",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "source_id": {
+                        "description": "source_id",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "relation": {
+                        "description": "relation",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "metadata": {
+                        "description": "metadata",
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
             "EventUpdateRequest": {
                 "properties": {
                     "uuid": {
@@ -1006,6 +1558,85 @@
                     "status": {
                         "description": "status",
                         "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "OccurrenceCreateRequest": {
+                "properties": {
+                    "event_id": {
+                        "description": "event_id",
+                        "type": "integer"
+                    },
+                    "venue_id": {
+                        "description": "venue_id",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "start_time": {
+                        "description": "start_time",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "end_time": {
+                        "description": "end_time",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "description": "status",
+                        "type": "string"
+                    },
+                    "capacity": {
+                        "description": "capacity",
+                        "type": "integer"
+                    },
+                    "available_spots": {
+                        "description": "available_spots",
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "OccurrenceIndexRequest": {},
+            "OccurrenceUpdateRequest": {
+                "properties": {
+                    "event_id": {
+                        "description": "event_id",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "venue_id": {
+                        "description": "venue_id",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "start_time": {
+                        "description": "start_time",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "end_time": {
+                        "description": "end_time",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "status": {
+                        "description": "status",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "capacity": {
+                        "description": "capacity",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "available_spots": {
+                        "description": "available_spots",
+                        "type": "integer",
                         "nullable": true
                     }
                 },
@@ -1174,6 +1805,64 @@
                         "description": "checked_in_at",
                         "type": "string",
                         "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "VenueCreateRequest": {
+                "properties": {
+                    "name": {
+                        "description": "name",
+                        "type": "string"
+                    },
+                    "slug": {
+                        "description": "slug",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "description",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "capacity": {
+                        "description": "capacity",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "is_active": {
+                        "description": "is_active",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "VenueIndexRequest": {},
+            "VenueUpdateRequest": {
+                "properties": {
+                    "name": {
+                        "description": "name",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "slug": {
+                        "description": "slug",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "description": {
+                        "description": "description",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "capacity": {
+                        "description": "capacity",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "is_active": {
+                        "description": "is_active",
+                        "type": "boolean",
                         "nullable": true
                     }
                 },
@@ -1355,6 +2044,62 @@
                 },
                 "type": "object"
             },
+            "EventReferenceResponse": {
+                "title": "EventReference Response",
+                "required": [
+                    "id",
+                    "event_id",
+                    "source_system",
+                    "source_type",
+                    "source_id",
+                    "relation"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "event_id": {
+                        "description": "event_id",
+                        "type": "integer"
+                    },
+                    "source_system": {
+                        "description": "source_system",
+                        "type": "string"
+                    },
+                    "source_type": {
+                        "description": "source_type",
+                        "type": "string"
+                    },
+                    "source_id": {
+                        "description": "source_id",
+                        "type": "string"
+                    },
+                    "relation": {
+                        "description": "relation",
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "description": "metadata",
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "description": "Creation timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
             "EventResponse": {
                 "title": "Event Response",
                 "required": [
@@ -1417,6 +2162,69 @@
                     "status": {
                         "description": "status",
                         "type": "string"
+                    },
+                    "created_at": {
+                        "description": "Creation timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "OccurrenceResponse": {
+                "title": "Occurrence Response",
+                "required": [
+                    "id",
+                    "event_id",
+                    "start_time",
+                    "end_time",
+                    "status",
+                    "capacity",
+                    "available_spots"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "event_id": {
+                        "description": "event_id",
+                        "type": "integer"
+                    },
+                    "venue_id": {
+                        "description": "venue_id",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "start_time": {
+                        "description": "start_time",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "end_time": {
+                        "description": "end_time",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "description": "status",
+                        "type": "string"
+                    },
+                    "capacity": {
+                        "description": "capacity",
+                        "type": "integer"
+                    },
+                    "available_spots": {
+                        "description": "available_spots",
+                        "type": "integer"
                     },
                     "created_at": {
                         "description": "Creation timestamp",
@@ -1549,6 +2357,57 @@
                         "description": "sales_end",
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "created_at": {
+                        "description": "Creation timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "VenueResponse": {
+                "title": "Venue Response",
+                "required": [
+                    "id",
+                    "name",
+                    "slug",
+                    "is_active"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "name",
+                        "type": "string"
+                    },
+                    "slug": {
+                        "description": "slug",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "description",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "capacity": {
+                        "description": "capacity",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "is_active": {
+                        "description": "is_active",
+                        "type": "boolean"
                     },
                     "created_at": {
                         "description": "Creation timestamp",
