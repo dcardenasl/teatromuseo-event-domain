@@ -35,13 +35,15 @@
 - **Fix real**: `EventModel::uuid` de `required` a `permit_empty` — CI4 valida antes de correr
   `beforeInsert()` (que genera el UUID), así que con `required` la creación de cualquier Event fallaba
   silenciosamente.
-- **Deuda documentada, no bloqueante**: `LocalizedTranslationStore::requestedLocales()` llama
-  `service('request')` directamente (protegido con try/catch para CLI), violando "Services puros".
-  Arreglarlo de raíz requiere pasar el header `Accept-Language` desde el Controller a través del
-  trait/Store en vez de resolverlo internamente — pendiente como refactor futuro, no crítico porque
-  hoy funciona correctamente y no rompe en contexto CLI.
+- **Resuelto en la auditoría**: `LocalizedTranslationStore` ya no llama `service('request')`
+  internamente. Ahora recibe un `?IncomingRequest` opcional por constructor, resuelto una sola vez
+  en el punto de wiring (`EventsDomainServices::localizedTranslationStore()`, la capa correcta para
+  tocar HTTP) y verificado con `instanceof` antes de inyectarlo (una `CLIRequest` en contexto CLI
+  se traduce a `null` sin excepciones). El Store queda puro y testeable sin mocks globales.
+  Se agregaron los tests que faltaban: `testResolvePrefersTheAcceptLanguageHeaderOverTheFallbackLocale`
+  y `testResolveFallsBackToTheLegacyLocaleWithoutARequest`.
 - **Verificado**: `composer quality` (cs-check + phpstan nivel 8 sin baseline + swagger + arch-drift +
-  i18n-check + docs-i18n-check + 192 tests) en verde.
+  i18n-check + docs-i18n-check + 194 tests) en verde.
 
 ### EVT-DOM-002 — Deduplicación de referencias externas (`event_references`) (2026-07-27)
 - **Qué**: `ExternalReferenceCatalog` (vocabulario estable de `source_system`/`source_type`/`relation`
