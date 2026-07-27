@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DTO\Response\Events;
 
+use App\Traits\DTO\NormalizesResponseTimestamps;
 use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
 use OpenApi\Attributes as OA;
 
@@ -14,6 +15,8 @@ use OpenApi\Attributes as OA;
 )]
 final readonly class EventReferenceResponseDTO implements DataTransferObjectInterface
 {
+    use NormalizesResponseTimestamps;
+
     public function __construct(
         #[OA\Property(description: 'Unique identifier', example: 1)]
         public int $id,
@@ -49,8 +52,8 @@ final readonly class EventReferenceResponseDTO implements DataTransferObjectInte
             source_id: (string) ($data['source_id'] ?? ''),
             relation: (string) ($data['relation'] ?? ''),
             metadata: isset($data['metadata']) ? (array) $data['metadata'] : null,
-            createdAt: $data['created_at'] ?? null,
-            updatedAt: $data['updated_at'] ?? null,
+            createdAt: self::normalizeResponseTimestamp($data['created_at'] ?? null),
+            updatedAt: self::normalizeResponseTimestamp($data['updated_at'] ?? null),
         );
     }
 

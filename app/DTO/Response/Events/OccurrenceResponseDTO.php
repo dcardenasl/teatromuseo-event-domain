@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DTO\Response\Events;
 
+use App\Traits\DTO\NormalizesResponseTimestamps;
 use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
 use OpenApi\Attributes as OA;
 
@@ -14,6 +15,8 @@ use OpenApi\Attributes as OA;
 )]
 final readonly class OccurrenceResponseDTO implements DataTransferObjectInterface
 {
+    use NormalizesResponseTimestamps;
+
     public function __construct(
         #[OA\Property(description: 'Unique identifier', example: 1)]
         public int $id,
@@ -52,8 +55,8 @@ final readonly class OccurrenceResponseDTO implements DataTransferObjectInterfac
             status: (string) ($data['status'] ?? ''),
             capacity: (int) ($data['capacity'] ?? 0),
             available_spots: (int) ($data['available_spots'] ?? 0),
-            createdAt: $data['created_at'] ?? null,
-            updatedAt: $data['updated_at'] ?? null,
+            createdAt: self::normalizeResponseTimestamp($data['created_at'] ?? null),
+            updatedAt: self::normalizeResponseTimestamp($data['updated_at'] ?? null),
         );
     }
 
