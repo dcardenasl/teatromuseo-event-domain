@@ -16,6 +16,9 @@ readonly class TicketTypeCreateRequestDTO extends BaseRequestDTO
     public ?int $occurrence_id;
     #[OA\Property(description: 'name', type: 'string')]
     public string $name;
+    /** @var list<array<string, mixed>> */
+    #[OA\Property(description: 'Localized content rows keyed by locale code', type: 'array', items: new OA\Items(type: 'object'))]
+    public array $translations;
     #[OA\Property(description: 'price', type: 'number', format: 'float')]
     public float $price;
     #[OA\Property(description: 'capacity', type: 'integer')]
@@ -33,6 +36,7 @@ readonly class TicketTypeCreateRequestDTO extends BaseRequestDTO
             'event_id' => 'required|is_natural_no_zero|is_not_unique[events.id]',
             'occurrence_id' => 'permit_empty|is_natural_no_zero|is_not_unique[occurrences.id]',
             'name' => 'required|string|max_length[255]',
+            'translations' => 'permit_empty',
             'price' => 'required|decimal',
             'capacity' => 'required|integer',
             'available_spots' => 'required|integer',
@@ -46,6 +50,7 @@ readonly class TicketTypeCreateRequestDTO extends BaseRequestDTO
         $this->event_id = (int) ($data['event_id'] ?? 0);
         $this->occurrence_id = isset($data['occurrence_id']) ? (int) $data['occurrence_id'] : null;
         $this->name = (string) ($data['name'] ?? '');
+        $this->translations = is_array($data['translations'] ?? null) ? array_values($data['translations']) : [];
         $this->price = (float) ($data['price'] ?? 0);
         $this->capacity = (int) ($data['capacity'] ?? 0);
         $this->available_spots = (int) ($data['available_spots'] ?? 0);
@@ -59,6 +64,7 @@ readonly class TicketTypeCreateRequestDTO extends BaseRequestDTO
             'event_id' => $this->event_id,
             'occurrence_id' => $this->occurrence_id,
             'name' => $this->name,
+            'translations' => $this->translations,
             'price' => $this->price,
             'capacity' => $this->capacity,
             'available_spots' => $this->available_spots,

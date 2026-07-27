@@ -54,6 +54,20 @@ seguras de estado.
 
 - Las descripciones y etiquetas siguen la estrategia de traducciones del
   proyecto.
+- CMS es la fuente de verdad de los idiomas activos y del idioma por defecto en
+  la capa pública/de autoría. Los formularios del Admin consultan ese registro
+  al renderizar; Event no fija una lista de idiomas ni almacena IDs de idiomas
+  del CMS.
+- El contenido traducible se persiste en `event_translations` usando el
+  contrato estable `(translatable_type, translatable_id, locale, field)`. La
+  API recibe y devuelve filas planas como `{locale, title, description}`.
+- `Accept-Language` resuelve una proyección `localized` campo por campo. Los
+  valores faltantes usan `EVENT_LEGACY_FALLBACK_LOCALE` y luego otra
+  traducción disponible. Las columnas raíz `title`, `name` y `description`
+  quedan solo como proyecciones de compatibilidad mientras migran los clientes.
+- Los campos humanos cubiertos hoy son Event `title/description`, Venue
+  `name/description` y TicketType `name`. Las entidades operativas no se
+  traducen.
 - Los registros de Catalog y CMS se vinculan mediante referencias externas,
   nunca mediante foreign keys entre bases de datos.
 - Los endpoints públicos exponen solo eventos y ocurrencias publicados.

@@ -18,6 +18,9 @@ readonly class EventCreateRequestDTO extends BaseRequestDTO
     public string $event_type;
     #[OA\Property(description: 'description', type: 'string')]
     public string $description;
+    /** @var list<array<string, mixed>> */
+    #[OA\Property(description: 'Localized content rows keyed by locale code', type: 'array', items: new OA\Items(type: 'object'))]
+    public array $translations;
     #[OA\Property(description: 'start_time', type: 'string', format: 'date-time')]
     public ?string $start_time;
     #[OA\Property(description: 'end_time', type: 'string', format: 'date-time')]
@@ -38,6 +41,7 @@ readonly class EventCreateRequestDTO extends BaseRequestDTO
             'title' => 'required|string|max_length[255]',
             'event_type' => 'required|in_list[function,festival,course,workshop,other]',
             'description' => 'required|string',
+            'translations' => 'permit_empty',
             'start_time' => 'permit_empty|valid_date',
             'end_time' => 'permit_empty|valid_date',
             'venue' => 'permit_empty|string|max_length[255]',
@@ -53,6 +57,7 @@ readonly class EventCreateRequestDTO extends BaseRequestDTO
         $this->title = (string) ($data['title'] ?? '');
         $this->event_type = (string) ($data['event_type'] ?? 'function');
         $this->description = (string) ($data['description'] ?? '');
+        $this->translations = is_array($data['translations'] ?? null) ? array_values($data['translations']) : [];
         $this->start_time = isset($data['start_time']) ? (string) $data['start_time'] : null;
         $this->end_time = isset($data['end_time']) ? (string) $data['end_time'] : null;
         $this->venue = isset($data['venue']) ? (string) $data['venue'] : null;
@@ -68,6 +73,7 @@ readonly class EventCreateRequestDTO extends BaseRequestDTO
             'title' => $this->title,
             'event_type' => $this->event_type,
             'description' => $this->description,
+            'translations' => $this->translations,
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,
             'venue' => $this->venue,

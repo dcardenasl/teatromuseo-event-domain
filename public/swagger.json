@@ -1403,6 +1403,13 @@
                         "description": "description",
                         "type": "string"
                     },
+                    "translations": {
+                        "description": "Localized content rows keyed by locale code",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
                     "start_time": {
                         "description": "start_time",
                         "type": "string",
@@ -1526,6 +1533,14 @@
                     "description": {
                         "description": "description",
                         "type": "string",
+                        "nullable": true
+                    },
+                    "translations": {
+                        "description": "Localized content rows keyed by locale code",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        },
                         "nullable": true
                     },
                     "start_time": {
@@ -1698,6 +1713,13 @@
                         "description": "name",
                         "type": "string"
                     },
+                    "translations": {
+                        "description": "Localized content rows keyed by locale code",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
                     "price": {
                         "description": "price",
                         "type": "number",
@@ -1740,6 +1762,14 @@
                     "name": {
                         "description": "name",
                         "type": "string",
+                        "nullable": true
+                    },
+                    "translations": {
+                        "description": "Localized content rows keyed by locale code",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        },
                         "nullable": true
                     },
                     "price": {
@@ -1835,6 +1865,13 @@
                         "type": "string",
                         "nullable": true
                     },
+                    "translations": {
+                        "description": "Localized content rows keyed by locale code",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
                     "capacity": {
                         "description": "capacity",
                         "type": "integer",
@@ -1863,6 +1900,14 @@
                     "description": {
                         "description": "description",
                         "type": "string",
+                        "nullable": true
+                    },
+                    "translations": {
+                        "description": "Localized content rows keyed by locale code",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        },
                         "nullable": true
                     },
                     "capacity": {
@@ -2118,7 +2163,9 @@
                     "title",
                     "event_type",
                     "description",
-                    "status"
+                    "status",
+                    "translations",
+                    "localized"
                 ],
                 "properties": {
                     "id": {
@@ -2141,6 +2188,17 @@
                     "description": {
                         "description": "description",
                         "type": "string"
+                    },
+                    "translations": {
+                        "description": "All stored localized content rows",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "localized": {
+                        "description": "Content resolved from Accept-Language with field-level fallback",
+                        "type": "object"
                     },
                     "start_time": {
                         "description": "start_time",
@@ -2324,7 +2382,9 @@
                     "capacity",
                     "available_spots",
                     "sales_start",
-                    "sales_end"
+                    "sales_end",
+                    "translations",
+                    "localized"
                 ],
                 "properties": {
                     "id": {
@@ -2344,6 +2404,17 @@
                     "name": {
                         "description": "name",
                         "type": "string"
+                    },
+                    "translations": {
+                        "description": "All stored localized content rows",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "localized": {
+                        "description": "Content resolved from Accept-Language with field-level fallback",
+                        "type": "object"
                     },
                     "price": {
                         "description": "price",
@@ -2389,7 +2460,9 @@
                     "id",
                     "name",
                     "slug",
-                    "is_active"
+                    "is_active",
+                    "translations",
+                    "localized"
                 ],
                 "properties": {
                     "id": {
@@ -2409,6 +2482,17 @@
                         "description": "description",
                         "type": "string",
                         "nullable": true
+                    },
+                    "translations": {
+                        "description": "All stored localized content rows",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "localized": {
+                        "description": "Content resolved from Accept-Language with field-level fallback",
+                        "type": "object"
                     },
                     "capacity": {
                         "description": "capacity",

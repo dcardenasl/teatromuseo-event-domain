@@ -51,6 +51,19 @@ availability, booking holds, idempotency, and safe state transitions.
 ## Cross-domain and content rules
 
 - Event descriptions and labels follow the project's translation strategy.
+- The CMS is the source of truth for active languages and their default in the
+  authoring/public language layer. Admin forms read that registry at render
+  time; Event does not hardcode a language list or store CMS language ids.
+- Localized content is persisted in `event_translations` using the stable
+  `(translatable_type, translatable_id, locale, field)` contract. The API
+  accepts and returns flat rows such as `{locale, title, description}`.
+- `Accept-Language` resolves a `localized` projection field by field. Missing
+  values fall back to `EVENT_LEGACY_FALLBACK_LOCALE` and then to another
+  stored translation. Root `title`, `name`, and `description` columns remain
+  only as compatibility projections while clients migrate to `translations`.
+- Human-facing fields covered today are Event `title/description`, Venue
+  `name/description`, and TicketType `name`. Operational entities are not
+  translated.
 - Catalog and CMS records are linked by external references, never by database
   foreign keys.
 - Public endpoints expose published events and occurrences only.

@@ -6,6 +6,8 @@ namespace App\Services\Events;
 
 use App\Entities\TicketTypeEntity;
 use App\Interfaces\Events\TicketTypeServiceInterface;
+use App\Libraries\Localization\LocalizedTranslationStore;
+use App\Traits\Services\HasLocalizedTranslations;
 use dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface;
 use dcardenasl\Ci4ApiCore\Repositories\RepositoryInterface;
 use dcardenasl\Ci4ApiCore\Services\BaseCrudService;
@@ -15,24 +17,18 @@ use dcardenasl\Ci4ApiCore\Services\BaseCrudService;
  */
 class TicketTypeService extends BaseCrudService implements TicketTypeServiceInterface
 {
+    use HasLocalizedTranslations;
+
     /**
      * @param RepositoryInterface<TicketTypeEntity> $ticketTypeRepository
      */
     public function __construct(
         RepositoryInterface $ticketTypeRepository,
-        ResponseMapperInterface $responseMapper
+        ResponseMapperInterface $responseMapper,
+        LocalizedTranslationStore $translationStore,
     ) {
         parent::__construct($ticketTypeRepository, $responseMapper);
+        $this->translationStore = $translationStore;
+        $this->localizedResourceType = 'ticket_type';
     }
-
-    /**
-     * Domain Hooks
-     *
-     * Implement beforeStore, afterStore, beforeUpdate, etc.,
-     * to add specific business logic while keeping the service layer clean.
-     */
-
-    // Custom methods declared in TicketTypeServiceInterface must be implemented here.
-    // Until fully implemented, throw to avoid silent incorrect behavior:
-    //   throw new \BadMethodCallException(__METHOD__ . ' not implemented');
 }

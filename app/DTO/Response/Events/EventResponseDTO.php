@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace App\DTO\Response\Events;
 
+use App\Traits\DTO\NormalizesResponseTimestamps;
 use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(
     schema: 'EventResponse',
     title: 'Event Response',
-    required: ["id","uuid","title","event_type","description","status"]
+    required: ["id","uuid","title","event_type","description","status","translations","localized"]
 )]
 final readonly class EventResponseDTO implements DataTransferObjectInterface
 {
+    use NormalizesResponseTimestamps;
+
     public function __construct(
         #[OA\Property(description: 'Unique identifier', example: 1)]
         public int $id,
@@ -25,6 +28,12 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
         public string $event_type,
         #[OA\Property(description: 'description', type: 'string')]
         public string $description,
+        /** @var list<array{locale: string, fields: array<string, string>}> */
+        #[OA\Property(description: 'All stored localized content rows', type: 'array', items: new OA\Items(type: 'object'))]
+        public array $translations,
+        /** @var array{locale: string, title?: string, description?: string} */
+        #[OA\Property(description: 'Content resolved from Accept-Language with field-level fallback', type: 'object')]
+        public array $localized,
         #[OA\Property(description: 'start_time', type: 'string', format: 'date-time')]
         public ?string $start_time,
         #[OA\Property(description: 'end_time', type: 'string', format: 'date-time')]
@@ -52,14 +61,16 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
             title: (string) ($data['title'] ?? ''),
             event_type: (string) ($data['event_type'] ?? 'function'),
             description: (string) ($data['description'] ?? ''),
+            translations: is_array($data['translations'] ?? null) ? $data['translations'] : [],
+            localized: is_array($data['localized'] ?? null) ? $data['localized'] : [],
             start_time: isset($data['start_time']) ? (string) $data['start_time'] : null,
             end_time: isset($data['end_time']) ? (string) $data['end_time'] : null,
             venue: isset($data['venue']) ? (string) $data['venue'] : null,
             capacity: isset($data['capacity']) ? (int) $data['capacity'] : null,
             available_spots: isset($data['available_spots']) ? (int) $data['available_spots'] : null,
             status: (string) ($data['status'] ?? ''),
-            createdAt: isset($data['created_at']) ? (string) $data['created_at'] : null,
-            updatedAt: isset($data['updated_at']) ? (string) $data['updated_at'] : null,
+            createdAt: self::normalizeResponseTimestamp($data['created_at'] ?? null),
+            updatedAt: self::normalizeResponseTimestamp($data['updated_at'] ?? null),
         );
     }
 
@@ -71,6 +82,8 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
             'title' => $this->title,
             'event_type' => $this->event_type,
             'description' => $this->description,
+            'translations' => $this->translations,
+            'localized' => $this->localized,
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,
             'venue' => $this->venue,

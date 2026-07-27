@@ -18,6 +18,9 @@ readonly class EventUpdateRequestDTO extends BaseRequestDTO
     public ?string $event_type;
     #[OA\Property(description: 'description', type: 'string', nullable: true)]
     public ?string $description;
+    /** @var list<array<string, mixed>>|null */
+    #[OA\Property(description: 'Localized content rows keyed by locale code', type: 'array', nullable: true, items: new OA\Items(type: 'object'))]
+    public ?array $translations;
     #[OA\Property(description: 'start_time', type: 'string', format: 'date-time', nullable: true)]
     public ?string $start_time;
     #[OA\Property(description: 'end_time', type: 'string', format: 'date-time', nullable: true)]
@@ -38,6 +41,7 @@ readonly class EventUpdateRequestDTO extends BaseRequestDTO
             'title' => 'permit_empty|string|max_length[255]',
             'event_type' => 'permit_empty|in_list[function,festival,course,workshop,other]',
             'description' => 'permit_empty|string',
+            'translations' => 'permit_empty',
             'start_time' => 'permit_empty|valid_date',
             'end_time' => 'permit_empty|valid_date',
             'venue' => 'permit_empty|string|max_length[255]',
@@ -53,6 +57,9 @@ readonly class EventUpdateRequestDTO extends BaseRequestDTO
         $this->title = $data['title'] ?? null;
         $this->event_type = $data['event_type'] ?? null;
         $this->description = $data['description'] ?? null;
+        $this->translations = array_key_exists('translations', $data) && is_array($data['translations'])
+            ? array_values($data['translations'])
+            : null;
         $this->start_time = $data['start_time'] ?? null;
         $this->end_time = $data['end_time'] ?? null;
         $this->venue = $data['venue'] ?? null;
@@ -74,6 +81,6 @@ readonly class EventUpdateRequestDTO extends BaseRequestDTO
             'capacity' => $this->capacity,
             'available_spots' => $this->available_spots,
             'status' => $this->status,
-        ], fn ($v) => $v !== null);
+        ], fn ($v) => $v !== null) + ($this->translations !== null ? ['translations' => $this->translations] : []);
     }
 }

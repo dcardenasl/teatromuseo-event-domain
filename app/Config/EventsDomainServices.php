@@ -6,6 +6,17 @@ namespace Config;
 
 trait EventsDomainServices
 {
+    public static function localizedTranslationStore(bool $getShared = true): \App\Libraries\Localization\LocalizedTranslationStore
+    {
+        if ($getShared) {
+            return static::getSharedInstance('localizedTranslationStore');
+        }
+
+        return new \App\Libraries\Localization\LocalizedTranslationStore(
+            new \App\Models\EventTranslationModel()
+        );
+    }
+
     public static function eventResponseMapper(bool $getShared = true): \dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface
     {
         if ($getShared) {
@@ -18,7 +29,11 @@ trait EventsDomainServices
         if ($getShared) {
             return static::getSharedInstance('eventService');
         }
-        return new \App\Services\Events\EventService(new \dcardenasl\Ci4ApiCore\Repositories\GenericRepository(model(\App\Models\EventModel::class)), static::eventResponseMapper());
+        return new \App\Services\Events\EventService(
+            new \dcardenasl\Ci4ApiCore\Repositories\GenericRepository(model(\App\Models\EventModel::class)),
+            static::eventResponseMapper(),
+            static::localizedTranslationStore(),
+        );
     }
     public static function ticketTypeResponseMapper(bool $getShared = true): \dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface
     {
@@ -32,7 +47,11 @@ trait EventsDomainServices
         if ($getShared) {
             return static::getSharedInstance('ticketTypeService');
         }
-        return new \App\Services\Events\TicketTypeService(new \dcardenasl\Ci4ApiCore\Repositories\GenericRepository(model(\App\Models\TicketTypeModel::class)), static::ticketTypeResponseMapper());
+        return new \App\Services\Events\TicketTypeService(
+            new \dcardenasl\Ci4ApiCore\Repositories\GenericRepository(model(\App\Models\TicketTypeModel::class)),
+            static::ticketTypeResponseMapper(),
+            static::localizedTranslationStore(),
+        );
     }
     public static function bookingResponseMapper(bool $getShared = true): \dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface
     {
@@ -74,7 +93,11 @@ trait EventsDomainServices
         if ($getShared) {
             return static::getSharedInstance('venueService');
         }
-        return new \App\Services\Events\VenueService(new \dcardenasl\Ci4ApiCore\Repositories\GenericRepository(model(\App\Models\VenueModel::class)), static::venueResponseMapper());
+        return new \App\Services\Events\VenueService(
+            new \dcardenasl\Ci4ApiCore\Repositories\GenericRepository(model(\App\Models\VenueModel::class)),
+            static::venueResponseMapper(),
+            static::localizedTranslationStore(),
+        );
     }
     public static function occurrenceResponseMapper(bool $getShared = true): \dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface
     {

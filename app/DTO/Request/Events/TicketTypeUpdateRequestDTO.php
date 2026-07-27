@@ -16,6 +16,9 @@ readonly class TicketTypeUpdateRequestDTO extends BaseRequestDTO
     public ?int $occurrence_id;
     #[OA\Property(description: 'name', type: 'string', nullable: true)]
     public ?string $name;
+    /** @var list<array<string, mixed>>|null */
+    #[OA\Property(description: 'Localized content rows keyed by locale code', type: 'array', nullable: true, items: new OA\Items(type: 'object'))]
+    public ?array $translations;
     #[OA\Property(description: 'price', type: 'number', format: 'float', nullable: true)]
     public ?float $price;
     #[OA\Property(description: 'capacity', type: 'integer', nullable: true)]
@@ -33,6 +36,7 @@ readonly class TicketTypeUpdateRequestDTO extends BaseRequestDTO
             'event_id' => 'permit_empty|is_natural_no_zero|is_not_unique[events.id]',
             'occurrence_id' => 'permit_empty|is_natural_no_zero|is_not_unique[occurrences.id]',
             'name' => 'permit_empty|string|max_length[255]',
+            'translations' => 'permit_empty',
             'price' => 'permit_empty|decimal',
             'capacity' => 'permit_empty|integer',
             'available_spots' => 'permit_empty|integer',
@@ -46,6 +50,9 @@ readonly class TicketTypeUpdateRequestDTO extends BaseRequestDTO
         $this->event_id = isset($data['event_id']) ? (int) $data['event_id'] : null;
         $this->occurrence_id = isset($data['occurrence_id']) ? (int) $data['occurrence_id'] : null;
         $this->name = $data['name'] ?? null;
+        $this->translations = array_key_exists('translations', $data) && is_array($data['translations'])
+            ? array_values($data['translations'])
+            : null;
         $this->price = isset($data['price']) ? (float) $data['price'] : null;
         $this->capacity = isset($data['capacity']) ? (int) $data['capacity'] : null;
         $this->available_spots = isset($data['available_spots']) ? (int) $data['available_spots'] : null;
@@ -64,6 +71,6 @@ readonly class TicketTypeUpdateRequestDTO extends BaseRequestDTO
             'available_spots' => $this->available_spots,
             'sales_start' => $this->sales_start,
             'sales_end' => $this->sales_end,
-        ], fn ($v) => $v !== null);
+        ], fn ($v) => $v !== null) + ($this->translations !== null ? ['translations' => $this->translations] : []);
     }
 }
