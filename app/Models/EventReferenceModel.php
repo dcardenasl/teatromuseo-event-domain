@@ -20,6 +20,10 @@ class EventReferenceModel extends BaseAuditableModel
     protected $useSoftDeletes = true;
     protected $useTimestamps = true;
 
+    protected array $casts = [
+        'metadata' => '?json',
+    ];
+
     protected $allowedFields = ['event_id', 'source_system', 'source_type', 'source_id', 'relation', 'metadata'];
 
     /** @var array<int, string> */
