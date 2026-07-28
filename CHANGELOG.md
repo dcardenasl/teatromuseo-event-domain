@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`EventModel`** — creating an event no longer fails validation before the model's own
   `beforeInsert` hook can generate its UUID.
+- **`EventReferenceModel`** — `metadata` is now cast as nullable JSON, fixing a write error when
+  storing a reference without metadata.
 
 ### Changed
 
