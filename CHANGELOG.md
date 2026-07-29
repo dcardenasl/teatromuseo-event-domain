@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Localized public slug store & generator** — introduced `PublicSlugStore`, `SlugGenerator`, `RequestLocaleResolver`, `HasPublicSlugs` trait, and migrations `2026-07-28-040000_CreateEventPublicSlugsTable` / `2026-07-28-040500_BackfillEventPublicSlugs` for localized event slug resolution and historical URL tracking.
+- **Public Event API (`/api/v1/public/events`)** — created `PublicEventController` gated by `WebAppKeyRequiredFilter` for querying public events by localized slug or date range, documented in OpenAPI/Swagger (`PublicEventEndpoints`).
 - **Localized content** — Events, Venues and TicketTypes now expose `translations`/`localized`
   fields resolved from `Accept-Language`, additive to the existing legacy fields.
 - **External reference deduplication** — `event_references` links to other domains (e.g. CMS
