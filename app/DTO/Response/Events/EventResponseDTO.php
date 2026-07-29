@@ -34,6 +34,11 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
         /** @var array{locale: string, title?: string, description?: string} */
         #[OA\Property(description: 'Content resolved from Accept-Language with field-level fallback', type: 'object')]
         public array $localized,
+        #[OA\Property(description: 'Public routing slug resolved for the request locale', type: 'string')]
+        public string $slug,
+        /** @var array<string, string> */
+        #[OA\Property(description: 'Every public routing slug, keyed by locale', type: 'object')]
+        public array $slugs,
         #[OA\Property(description: 'start_time', type: 'string', format: 'date-time')]
         public ?string $start_time,
         #[OA\Property(description: 'end_time', type: 'string', format: 'date-time')]
@@ -63,6 +68,8 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
             description: (string) ($data['description'] ?? ''),
             translations: is_array($data['translations'] ?? null) ? $data['translations'] : [],
             localized: is_array($data['localized'] ?? null) ? $data['localized'] : [],
+            slug: (string) ($data['slug'] ?? ''),
+            slugs: is_array($data['slugs'] ?? null) ? $data['slugs'] : [],
             start_time: isset($data['start_time']) ? (string) $data['start_time'] : null,
             end_time: isset($data['end_time']) ? (string) $data['end_time'] : null,
             venue: isset($data['venue']) ? (string) $data['venue'] : null,
@@ -84,6 +91,8 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
             'description' => $this->description,
             'translations' => $this->translations,
             'localized' => $this->localized,
+            'slug' => $this->slug,
+            'slugs' => $this->slugs,
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,
             'venue' => $this->venue,

@@ -165,6 +165,12 @@ if [ "$SKIP_DB" = false ]; then
   php spark db:create "$TEST_DB_NAME" || true
   php spark migrate
   print_ok "Migrations applied"
+  if php spark db:seed TeatroMuseoEventSeeder; then
+    print_ok "Event seed data loaded"
+  else
+    print_error "Event seeding failed. Run 'php spark db:seed TeatroMuseoEventSeeder' manually."
+    exit 1
+  fi
 fi
 
 print_header "Validating ci4-api-core service wiring"

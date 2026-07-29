@@ -20,6 +20,23 @@ trait EventsDomainServices
         );
     }
 
+    public static function publicSlugStore(bool $getShared = true): \App\Libraries\Localization\PublicSlugStore
+    {
+        if ($getShared) {
+            return static::getSharedInstance('publicSlugStore');
+        }
+
+        $request = \Config\Services::request();
+
+        return new \App\Libraries\Localization\PublicSlugStore(
+            new \App\Models\EventPublicSlugModel(),
+            new \App\Libraries\Localization\SlugGenerator(),
+            new \App\Libraries\Localization\RequestLocaleResolver(
+                $request instanceof \CodeIgniter\HTTP\IncomingRequest ? $request : null
+            ),
+        );
+    }
+
     public static function eventResponseMapper(bool $getShared = true): \dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface
     {
         if ($getShared) {
@@ -36,6 +53,7 @@ trait EventsDomainServices
             new \dcardenasl\Ci4ApiCore\Repositories\GenericRepository(model(\App\Models\EventModel::class)),
             static::eventResponseMapper(),
             static::localizedTranslationStore(),
+            static::publicSlugStore(),
         );
     }
     public static function ticketTypeResponseMapper(bool $getShared = true): \dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface

@@ -8,7 +8,11 @@ use dcardenasl\Ci4ApiCore\Services\CrudServiceContract;
 
 interface EventServiceInterface extends CrudServiceContract
 {
-    // Declare resource-specific service methods here.
-    // Implement them in EventService; until ready, throw:
-    //   throw new \BadMethodCallException(__METHOD__ . ' not implemented');
+    /**
+     * Public detail lookup by numeric id, uuid, or per-locale routing slug.
+     * Only published events resolve; anything else raises NotFoundException.
+     *
+     * @return array<string, mixed>
+     */
+    public function getPublicByIdOrSlug(string $idOrSlug): array;
 }

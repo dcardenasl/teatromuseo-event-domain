@@ -660,6 +660,116 @@
                 }
             }
         },
+        "/api/v1/public/events": {
+            "get": {
+                "tags": [
+                    "Public Events"
+                ],
+                "summary": "List published events for the public site",
+                "description": "Requires the X-App-Key header bound to the web application. Only published events are returned; localized content follows Accept-Language.",
+                "operationId": "2135a3106b2155a57f5ca418634e42f4",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/EventResponse"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid X-App-Key"
+                    }
+                }
+            }
+        },
+        "/api/v1/public/events/{idOrSlug}": {
+            "get": {
+                "tags": [
+                    "Public Events"
+                ],
+                "summary": "Get a published event by id, uuid, or per-locale routing slug",
+                "description": "Slug resolution prefers the Accept-Language locale and falls back to any locale, so shared URLs keep working across languages.",
+                "operationId": "60c297f97fb8e25dd74c727139a207fb",
+                "parameters": [
+                    {
+                        "name": "idOrSlug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EventResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid X-App-Key"
+                    },
+                    "404": {
+                        "description": "Not found or not published"
+                    }
+                }
+            }
+        },
         "/api/v1/events/tickets": {
             "get": {
                 "tags": [
@@ -2200,6 +2310,14 @@
                         "description": "Content resolved from Accept-Language with field-level fallback",
                         "type": "object"
                     },
+                    "slug": {
+                        "description": "Public routing slug resolved for the request locale",
+                        "type": "string"
+                    },
+                    "slugs": {
+                        "description": "Every public routing slug, keyed by locale",
+                        "type": "object"
+                    },
                     "start_time": {
                         "description": "start_time",
                         "type": "string",
@@ -2606,6 +2724,10 @@
         {
             "name": "Events",
             "description": "Events"
+        },
+        {
+            "name": "Public Events",
+            "description": "Public Events"
         }
     ]
 }

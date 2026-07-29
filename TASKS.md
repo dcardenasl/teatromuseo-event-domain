@@ -21,6 +21,26 @@
 
 ## ✅ Completadas
 
+### EVT-DOM-003 — Slugs públicos por idioma + endpoint de detalle público (2026-07-28)
+- **Qué**: tabla `event_public_slugs` (UNIQUE `(resource_type, locale, slug)` +
+  UNIQUE `(resource_type, resource_id, locale)`) con `SlugGenerator` (transliteración vía
+  `Normalizer` FORM_D — iconv solo no sirve: en macOS translitera `ó` como `'o`) y
+  `PublicSlugStore` (generación estable: el slug NO cambia al editar el título; slug manual
+  por locale vía key `slug` en las filas de `translations`, extraído en `EventService` antes
+  de que el store de traducciones valide el payload). `RequestLocaleResolver` extraído para
+  compartir el parser de Accept-Language entre traducciones y slugs. Backfill de eventos
+  existentes + seeder actualizado. Endpoint `GET /api/v1/public/events/{idOrSlug}` (id, uuid
+  o slug por locale; solo `published`) documentado en OpenAPI junto al index público que no
+  tenía docs. `EventResponseDTO` expone `slug` (locale del request) y `slugs` (mapa completo)
+  de forma aditiva.
+- **Por qué**: el sitio web resolvía el detalle escaneando hasta 20 páginas × 100 eventos y
+  comparando títulos slugificados en memoria — URLs frágiles, colisiones y dependencia del
+  Accept-Language del visitante. Con slugs por idioma persistidos el detalle es un solo fetch
+  y las URLs son estables y SEO-correctas por locale.
+- **Verificado**: `composer quality` ✅ (PHPStan L8, CS-Fixer, 215 tests / 504 assertions;
+  swagger-validate pendiente solo del commit de `public/swagger.json`); migrate → rollback →
+  re-migrate limpio; backfill generó slugs para los 7 eventos reales preexistentes.
+
 ### EVT-DOM-001 — Contenido localizado para eventos, venues y tipos de ticket (2026-07-27)
 - **Qué**: `event_translations` (locale-code agnóstico, no depende del catálogo de idiomas del CMS),
   `LocalizedTranslationStore` + `TranslationFieldCatalog` + trait `HasLocalizedTranslations` para
