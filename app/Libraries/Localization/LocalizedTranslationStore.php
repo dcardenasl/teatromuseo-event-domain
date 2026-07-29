@@ -16,10 +16,13 @@ use dcardenasl\Ci4ApiCore\Exceptions\BadRequestException;
  */
 final class LocalizedTranslationStore
 {
+    private RequestLocaleResolver $localeResolver;
+
     public function __construct(
         private EventTranslationModel $model,
-        private ?IncomingRequest $request = null
+        ?IncomingRequest $request = null
     ) {
+        $this->localeResolver = new RequestLocaleResolver($request);
     }
 
     /**
@@ -376,27 +379,6 @@ final class LocalizedTranslationStore
      */
     private function requestedLocales(): array
     {
-        $header = $this->request?->getHeaderLine('Accept-Language') ?? '';
-
-        $weightedLocales = [];
-        foreach (explode(',', $header) as $part) {
-            $part = trim($part);
-            $quality = 1.0;
-            if (preg_match('/;q=([0-9.]+)/i', $part, $matches) === 1) {
-                $quality = (float) $matches[1];
-            }
-
-            $locale = trim((string) preg_replace('/;q=[0-9.]+/i', '', $part));
-            if ($locale === '' || preg_match('/^[a-z]{2,3}(?:[-_][a-z0-9]{2,8})*$/i', $locale) !== 1) {
-                continue;
-            }
-
-            $normalizedLocale = strtolower(str_replace('_', '-', $locale));
-            $weightedLocales[$normalizedLocale] = max($quality, $weightedLocales[$normalizedLocale] ?? 0.0);
-        }
-
-        arsort($weightedLocales, SORT_NUMERIC);
-
-        return array_keys($weightedLocales);
+        return $this->localeResolver->requestedLocales();
     }
 }
