@@ -1513,6 +1513,16 @@
                         "description": "description",
                         "type": "string"
                     },
+                    "cover_file_id": {
+                        "description": "cover_file_id",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "gallery_file_ids": {
+                        "description": "gallery_file_ids",
+                        "type": "string",
+                        "nullable": true
+                    },
                     "translations": {
                         "description": "Localized content rows keyed by locale code",
                         "type": "array",
@@ -1642,6 +1652,16 @@
                     },
                     "description": {
                         "description": "description",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "cover_file_id": {
+                        "description": "cover_file_id",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "gallery_file_ids": {
+                        "description": "gallery_file_ids",
                         "type": "string",
                         "nullable": true
                     },
@@ -2298,6 +2318,16 @@
                     "description": {
                         "description": "description",
                         "type": "string"
+                    },
+                    "cover_file_id": {
+                        "description": "cover_file_id",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "gallery_file_ids": {
+                        "description": "gallery_file_ids",
+                        "type": "string",
+                        "nullable": true
                     },
                     "translations": {
                         "description": "All stored localized content rows",

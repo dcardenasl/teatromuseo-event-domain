@@ -28,6 +28,10 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
         public string $event_type,
         #[OA\Property(description: 'description', type: 'string')]
         public string $description,
+        #[OA\Property(description: 'cover_file_id', type: 'integer', nullable: true)]
+        public ?int $cover_file_id,
+        #[OA\Property(description: 'gallery_file_ids', type: 'string', nullable: true)]
+        public ?string $gallery_file_ids,
         /** @var list<array{locale: string, fields: array<string, string>}> */
         #[OA\Property(description: 'All stored localized content rows', type: 'array', items: new OA\Items(type: 'object'))]
         public array $translations,
@@ -66,6 +70,8 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
             title: (string) ($data['title'] ?? ''),
             event_type: (string) ($data['event_type'] ?? 'function'),
             description: (string) ($data['description'] ?? ''),
+            cover_file_id: isset($data['cover_file_id']) ? (int) $data['cover_file_id'] : null,
+            gallery_file_ids: $data['gallery_file_ids'] ?? null,
             translations: is_array($data['translations'] ?? null) ? $data['translations'] : [],
             localized: is_array($data['localized'] ?? null) ? $data['localized'] : [],
             slug: (string) ($data['slug'] ?? ''),
@@ -89,6 +95,8 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
             'title' => $this->title,
             'event_type' => $this->event_type,
             'description' => $this->description,
+            'cover_file_id' => $this->cover_file_id,
+            'gallery_file_ids' => $this->gallery_file_ids,
             'translations' => $this->translations,
             'localized' => $this->localized,
             'slug' => $this->slug,

@@ -20,7 +20,7 @@ class EventModel extends BaseAuditableModel
     protected $useSoftDeletes = true;
     protected $useTimestamps = true;
 
-    protected $allowedFields = ['uuid', 'title', 'event_type', 'description', 'start_time', 'end_time', 'venue', 'capacity', 'available_spots', 'status'];
+    protected $allowedFields = ['uuid', 'title', 'event_type', 'description', 'cover_file_id', 'gallery_file_ids', 'start_time', 'end_time', 'venue', 'capacity', 'available_spots', 'status'];
 
     /** @var array<int, string> */
     protected array $searchableFields = ['title', 'venue'];
@@ -38,6 +38,8 @@ class EventModel extends BaseAuditableModel
         'title' => 'required|string|max_length[255]',
         'event_type' => 'required|in_list[function,festival,course,workshop,other]',
         'description' => 'required|string',
+        'cover_file_id' => 'permit_empty|integer',
+        'gallery_file_ids' => 'permit_empty|string',
         'start_time' => 'permit_empty|valid_date',
         'end_time' => 'permit_empty|valid_date',
         'venue' => 'permit_empty|string|max_length[255]',
