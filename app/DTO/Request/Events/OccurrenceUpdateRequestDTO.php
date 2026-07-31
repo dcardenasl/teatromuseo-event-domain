@@ -41,18 +41,54 @@ readonly class OccurrenceUpdateRequestDTO extends BaseRequestDTO
         ];
     }
 
+    /** @var array<string, mixed> */
+    private array $mappedFields;
+
     /**
+     * venue_id is the only nullable column on occurrences — it preserves an
+     * explicit null so it reaches toArray() and actually clears the column
+     * (e.g. detaching an occurrence from its venue). Every other field is
+     * NOT NULL, so an explicit null there is treated the same as omitting
+     * the field — the bug this fixes is array_filter() silently dropping
+     * every null, which made it impossible to ever clear the one field
+     * that can be.
+     *
      * @param array<string, mixed> $data
      */
     protected function map(array $data): void
     {
-        $this->event_id = isset($data['event_id']) ? (int) $data['event_id'] : null;
-        $this->venue_id = isset($data['venue_id']) ? (int) $data['venue_id'] : null;
-        $this->start_time = $data['start_time'] ?? null;
-        $this->end_time = $data['end_time'] ?? null;
-        $this->status = $data['status'] ?? null;
-        $this->capacity = isset($data['capacity']) ? (int) $data['capacity'] : null;
-        $this->available_spots = isset($data['available_spots']) ? (int) $data['available_spots'] : null;
+        $this->event_id = array_key_exists('event_id', $data) && $data['event_id'] !== null && $data['event_id'] !== '' ? (int) $data['event_id'] : null;
+        $this->venue_id = array_key_exists('venue_id', $data) && $data['venue_id'] !== null && $data['venue_id'] !== '' ? (int) $data['venue_id'] : null;
+        $this->start_time = array_key_exists('start_time', $data) && $data['start_time'] !== null ? (string) $data['start_time'] : null;
+        $this->end_time = array_key_exists('end_time', $data) && $data['end_time'] !== null ? (string) $data['end_time'] : null;
+        $this->status = array_key_exists('status', $data) && $data['status'] !== null ? (string) $data['status'] : null;
+        $this->capacity = array_key_exists('capacity', $data) && $data['capacity'] !== null && $data['capacity'] !== '' ? (int) $data['capacity'] : null;
+        $this->available_spots = array_key_exists('available_spots', $data) && $data['available_spots'] !== null && $data['available_spots'] !== '' ? (int) $data['available_spots'] : null;
+
+        $mappedFields = [];
+        if ($this->event_id !== null) {
+            $mappedFields['event_id'] = $this->event_id;
+        }
+        if (array_key_exists('venue_id', $data)) {
+            $mappedFields['venue_id'] = $this->venue_id;
+        }
+        if ($this->start_time !== null) {
+            $mappedFields['start_time'] = $this->start_time;
+        }
+        if ($this->end_time !== null) {
+            $mappedFields['end_time'] = $this->end_time;
+        }
+        if ($this->status !== null) {
+            $mappedFields['status'] = $this->status;
+        }
+        if ($this->capacity !== null) {
+            $mappedFields['capacity'] = $this->capacity;
+        }
+        if ($this->available_spots !== null) {
+            $mappedFields['available_spots'] = $this->available_spots;
+        }
+
+        $this->mappedFields = $mappedFields;
     }
 
     /**
@@ -60,14 +96,6 @@ readonly class OccurrenceUpdateRequestDTO extends BaseRequestDTO
      */
     public function toArray(): array
     {
-        return array_filter([
-            'event_id' => $this->event_id,
-            'venue_id' => $this->venue_id,
-            'start_time' => $this->start_time,
-            'end_time' => $this->end_time,
-            'status' => $this->status,
-            'capacity' => $this->capacity,
-            'available_spots' => $this->available_spots,
-        ], static fn (mixed $value): bool => $value !== null);
+        return $this->mappedFields;
     }
 }
