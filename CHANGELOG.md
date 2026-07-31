@@ -16,6 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **External reference deduplication** — `event_references` links to other domains (e.g. CMS
   entries) are now idempotent: re-submitting the same link returns the existing record instead of
   duplicating or erroring.
+- **`cover_file_id` / `gallery_file_ids` on events** — events can now carry a cover image and
+  gallery, resolved to Hub file metadata (`cover_image`/`gallery_images`) on
+  `/api/v1/public/events*` via `HubClient::resolvePublicFileMeta()`.
+- **`internal/files/*` endpoints** — `HubSignatureFilter` + `InternalFileController` let the Hub
+  check whether a file is referenced by an event before deleting it, and invalidate this domain's
+  cached file metadata after a replace, via HMAC-signed requests.
+- **Admin sidebar grouping** — Events' 7 flat sidebar items are now grouped into "Scheduling"
+  (Event, Venue, Occurrence, EventReference) and "Ticketing" (TicketType, Booking, Ticket)
+  sections in `template.json`.
 
 ### Fixed
 
@@ -25,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `beforeInsert` hook can generate its UUID.
 - **`EventReferenceModel`** — `metadata` is now cast as nullable JSON, fixing a write error when
   storing a reference without metadata.
+- **`EventUpdateRequestDTO`, `TicketUpdateRequestDTO`, `EventReferenceUpdateRequestDTO`, `OccurrenceUpdateRequestDTO`, `TicketTypeUpdateRequestDTO`, `VenueUpdateRequestDTO`, `BookingUpdateRequestDTO`** — update requests can now explicitly clear a nullable field to `null` instead of silently dropping it.
 
 ### Changed
 
