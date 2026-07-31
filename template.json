@@ -235,7 +235,18 @@
       "label": "Events.sidebar_label",
       "icon": "calendar",
       "permission": "events.read",
-      "items": ["Event", "Venue", "Occurrence", "EventReference", "TicketType", "Booking", "Ticket"]
+      "groups": [
+        {
+          "key": "scheduling",
+          "label": "Events.sidebar_group_scheduling",
+          "items": ["Event", "Venue", "Occurrence", "EventReference"]
+        },
+        {
+          "key": "ticketing",
+          "label": "Events.sidebar_group_ticketing",
+          "items": ["TicketType", "Booking", "Ticket"]
+        }
+      ]
     }
   ]
 }
