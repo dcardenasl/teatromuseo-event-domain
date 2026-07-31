@@ -3,7 +3,7 @@
 > Fuente de verdad para trabajo en este repo.
 > Historial de completadas: ver `TASKS_ARCHIVE.md`.
 > Cross-repo: ver `../TASKS.md`.
-> Última actualización: 2026-05-25 (DOM-108 ✅ completado — onboarding desatendido)
+> Última actualización: 2026-07-30 (EVT-DOM-004 ✅ completado — cover_file_id en events)
 
 ---
 
@@ -20,6 +20,59 @@
 ---
 
 ## ✅ Completadas
+
+### EVT-DOM-006 — Fix "no se puede limpiar un campo nullable vía update" en las 7 *UpdateRequestDTO (2026-07-30)
+- **Qué**: `EventUpdateRequestDTO`, `TicketUpdateRequestDTO`, `EventReferenceUpdateRequestDTO`,
+  `OccurrenceUpdateRequestDTO`, `TicketTypeUpdateRequestDTO`, `VenueUpdateRequestDTO`,
+  `BookingUpdateRequestDTO` — todas usaban `array_filter($v !== null)` en `toArray()`, que
+  descartaba cualquier campo enviado como `null`, haciendo imposible limpiar explícitamente un
+  campo nullable (ej. quitar `cover_file_id`/`venue`/`checked_in_at`). Corregido con ternario de
+  una línea por propiedad + `array_key_exists()` + acumulador `$mappedFields`, decidiendo caso por
+  caso vía `DESCRIBE` real qué columnas son NOT NULL (nunca aceptan null explícito, tratado igual
+  que omitido) vs nullable (null explícito limpia la columna).
+- **Por qué**: encontrado durante EVT-DOM-004/005 al confirmar que el botón "Quitar" del picker de
+  portada nunca funcionaba — resultó ser un patrón roto en TODA la familia de Update DTOs del
+  monorepo (23 archivos en 4 repos), no solo en `cover_file_id`.
+- **Verificado**: end-to-end real — `PUT /events/events/1` con `{"venue": null}` → confirmado
+  `venue IS NULL` en BD vía SQL directo; `{"title": null}` en el mismo evento NO lo limpia (NOT
+  NULL protegido correctamente). `composer quality` ✅ (215/215 tests, PHPStan sin errores).
+
+### EVT-DOM-005 — Endpoints internal/files/* para el Hub (usage-check + invalidate-cache) (2026-07-30)
+- **Qué**: `App\Filters\HubSignatureFilter` (alias `hubsignature`) verifica llamadas HMAC del
+  Hub (`hub.internalSecret`/env `HUB_INTERNAL_SECRET`, fail-closed). Nuevo
+  `App\Services\Events\FileUsageService::getUsagesByHubFileId()` — prefiltra por SQL
+  (`cover_file_id` o `LIKE` sobre `gallery_file_ids`) y verifica membresía CSV exacta en PHP
+  para evitar falsos positivos por substring. `InternalFileController::usage()`/
+  `invalidateCache()` bajo `internal/files/*`, extendiendo `\CodeIgniter\Controller` (no
+  `ApiController`) — excepción documentada en `ControllerDtoRequestContractsTest`.
+- **Por qué**: el Hub no veía usages de `events.cover_file_id/gallery_file_ids` antes de borrar
+  un archivo, y `HubClient::invalidateFileMetaCache()` era dead code.
+- **Verificado**: end-to-end real contra el Hub — archivo subido, asignado como cover de un
+  evento real, `DELETE /files/{id}` → 409 correcto; `replace()` del archivo reflejado sin TTL
+  en `/api/v1/public/events/{id}`; datos de prueba limpiados. `composer quality` ✅ (215/215).
+- **Hallazgo colateral, no corregido**: `EventUpdateRequestDTO::toArray()` usa
+  `array_filter($v !== null)`, así que enviar `cover_file_id: null` para limpiar la portada se
+  descarta en silencio — el botón "Quitar" del picker nunca ha funcionado para events (ni para
+  collection_items en catalog-domain, mismo patrón). Reportado, no arreglado — cambiar la
+  semántica de PATCH afecta todos los campos nullable del DTO, no solo cover_file_id.
+
+### EVT-DOM-004 — cover_file_id/gallery_file_ids en events + resolución pública de imagen (2026-07-30)
+- **Qué**: columna `cover_file_id` (BIGINT unsigned nullable) + `gallery_file_ids` (TEXT nullable) en
+  `events` vía migración; expuestos en `EventModel`, `EventEntity`, `EventCreateRequestDTO`,
+  `EventUpdateRequestDTO` y `EventResponseDTO`. `PublicEventController::resolveMediaFields()`
+  (portado 1:1 desde `teatromuseo-catalog-domain`'s `PublicCollectionItemController`) resuelve
+  `cover_file_id`/`gallery_file_ids` vía `HubClient::resolvePublicFileMeta()` y expone
+  `cover_image`/`gallery_images` en `index()` y `show()` de `/api/v1/public/events*`. El método
+  `resolvePublicFileMeta()` no existía en el `HubClient` local de este repo (sí en catalog-domain) —
+  se portó junto con `invalidateFileMetaCache()`.
+- **Por qué**: `/es/cartelera` en el sitio público nunca mostraba imágenes de portada de eventos
+  porque el modelo de datos de events nunca tuvo campo de imagen (a diferencia de catalog-domain,
+  que ya resolvía `cover_file_id` contra el Hub). El código del web público ya buscaba
+  `cover_image`/`featured_image` correctamente — el gap estaba enteramente en este repo.
+- **Verificado**: `composer phpstan` ✅, `composer cs-check` ✅, 215/215 tests ✅; migración
+  corrida en MySQL local; `curl /api/v1/public/events` confirmado devolviendo `cover_image`/
+  `gallery_images` (null hasta que se cargue una imagen real vía admin). Swagger regenerado
+  (`public/swagger.json` pendiente de commit — `swagger-validate` marcará diff hasta entonces).
 
 ### EVT-DOM-003 — Slugs públicos por idioma + endpoint de detalle público (2026-07-28)
 - **Qué**: tabla `event_public_slugs` (UNIQUE `(resource_type, locale, slug)` +
