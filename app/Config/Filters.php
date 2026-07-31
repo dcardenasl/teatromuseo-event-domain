@@ -44,6 +44,7 @@ class Filters extends BaseFilters
         'performance'        => PerformanceMetrics::class,
         'domainauth'         => \App\Filters\DomainAuthFilter::class,
         'webappkey'          => \App\Filters\WebAppKeyRequiredFilter::class,
+        'hubsignature'       => \App\Filters\HubSignatureFilter::class,
         'throttle'           => ThrottleFilter::class,
         'permission'         => PermissionFilter::class,
         'requestLogging'    => RequestLoggingFilter::class,

@@ -148,4 +148,12 @@ trait EventsDomainServices
         }
         return new \App\Services\Events\EventReferenceService(new \dcardenasl\Ci4ApiCore\Repositories\GenericRepository(model(\App\Models\EventReferenceModel::class)), static::eventReferenceResponseMapper());
     }
+
+    public static function fileUsageService(bool $getShared = true): \App\Services\Events\FileUsageService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('fileUsageService');
+        }
+        return new \App\Services\Events\FileUsageService(\Config\Database::connect());
+    }
 }
