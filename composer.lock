@@ -85,16 +85,16 @@
         },
         {
             "name": "dcardenasl/ci4-api-core",
-            "version": "v1.0.0",
+            "version": "v1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dcardenasl/ci4-api-core.git",
-                "reference": "514a948522aa2eb61640c97506011301ba5905a0"
+                "reference": "25ed3183f6bf795332c5d9f5a2c59c036b0e8c17"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dcardenasl/ci4-api-core/zipball/514a948522aa2eb61640c97506011301ba5905a0",
-                "reference": "514a948522aa2eb61640c97506011301ba5905a0",
+                "url": "https://api.github.com/repos/dcardenasl/ci4-api-core/zipball/25ed3183f6bf795332c5d9f5a2c59c036b0e8c17",
+                "reference": "25ed3183f6bf795332c5d9f5a2c59c036b0e8c17",
                 "shasum": ""
             },
             "require": {
@@ -119,7 +119,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "0.9.x-dev"
+                    "dev-main": "1.2.x-dev"
                 },
                 "codeigniter4": {
                     "commands": [
@@ -170,7 +170,7 @@
                 "issues": "https://github.com/dcardenasl/ci4-api-core/issues",
                 "source": "https://github.com/dcardenasl/ci4-api-core"
             },
-            "time": "2026-06-04T08:12:21+00:00"
+            "time": "2026-08-01T18:28:46+00:00"
         },
         {
             "name": "guzzlehttp/psr7",
