@@ -40,3 +40,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Controllers** (`EventReferenceController`, `OccurrenceController`, `VenueController`) — removed
   dead, mismatched permission checks; authorization is enforced solely by route-level filters.
+- **`DomainPermissions::PERMISSIONS` / `events.php` routes / `template.json`** — renamed permission
+  codes to the `event.*` namespace (e.g. `events.read` → `event.events.read`) to avoid colliding
+  with other domains' permission codes.
+- **`domain:sync-permissions`** — primary permission registration now uses the hub's
+  `POST /api/v1/iam/self-permissions` endpoint via this domain's own X-App-Key; a superadmin JWT
+  is no longer required except when `--mirror-to-self` (now deprecated) or `--assign-to-role` is
+  used.
