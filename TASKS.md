@@ -3,7 +3,7 @@
 > Fuente de verdad para trabajo en este repo.
 > Historial de completadas: ver `TASKS_ARCHIVE.md`.
 > Cross-repo: ver `../TASKS.md`.
-> Última actualización: 2026-08-02 (EVT-DOM-007 ✅ completado — orden de la Cartelera pública)
+> Última actualización: 2026-08-02 (EVT-DOM-008 ✅ completado — eliminados eventos de ejemplo)
 
 ---
 
@@ -20,6 +20,23 @@
 ---
 
 ## ✅ Completadas
+
+### EVT-DOM-008 — Eliminar eventos de ejemplo mezclados con los reales (2026-08-02)
+- **Qué**: David notó que la Cartelera mezclaba eventos reales (migrados desde la BD legacy de
+  teatromuseo.cl) con eventos que "parecían un mockup" — pidió limpiar y dejar solo lo que viene
+  de la legacy, y extender la limpieza a los seeders de ejemplo en cms-domain/event-domain/
+  catalog-domain. Confirmado con SQL directo: `TeatroMuseoEventSeeder` ("Seeds representative
+  published events for local development") creaba 13 eventos falsos (ids 1-13, `uuid` con
+  patrón `evt-XXX`: "Festival de Luz", "Actividad Especial", etc.), mezclados con los 368
+  eventos reales (ids 21+, creados por `legacy:apply` y respaldados en
+  `legacy_migration_map` del hub). `init.sh` corría este seeder en cada instalación nueva.
+- **Fix**: los 13 eventos falsos borrados vía `DELETE /events/events/{id}` (soft-delete, cero
+  filas huérfanas — confirmado 0 occurrences/event_references/ticket_types apuntando a esos
+  ids). `TeatroMuseoEventSeeder.php` eliminado del todo; su llamada en `init.sh` removida.
+- **Verificado**: `composer quality` ✅ (220 tests, 1 skip preexistente no relacionado,
+  PHPStan sin errores). `events` en vivo: 368/368 sin `deleted_at`, todos con respaldo en
+  `legacy_migration_map`. Cartelera pública verificada visualmente — ya no aparece ningún
+  evento con título genérico de ejemplo.
 
 ### EVT-DOM-007 — Orden de la Cartelera: próximos primero, luego histórico descendente (2026-08-02)
 - **Qué**: David pidió que la Cartelera pública muestre lo próximo en el tiempo primero (fecha
