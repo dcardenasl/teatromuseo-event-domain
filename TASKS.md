@@ -3,7 +3,7 @@
 > Fuente de verdad para trabajo en este repo.
 > Historial de completadas: ver `TASKS_ARCHIVE.md`.
 > Cross-repo: ver `../TASKS.md`.
-> Última actualización: 2026-07-30 (EVT-DOM-004 ✅ completado — cover_file_id en events)
+> Última actualización: 2026-08-02 (EVT-DOM-007 ✅ completado — orden de la Cartelera pública)
 
 ---
 
@@ -20,6 +20,30 @@
 ---
 
 ## ✅ Completadas
+
+### EVT-DOM-007 — Orden de la Cartelera: próximos primero, luego histórico descendente (2026-08-02)
+- **Qué**: David pidió que la Cartelera pública muestre lo próximo en el tiempo primero (fecha
+  más cercana a hoy hacia adelante), y luego el histórico desde la fecha actual hacia atrás
+  (más reciente primero) — el orden natural de una cartelera real. El `sort` genérico del
+  scaffolding solo produce una única dirección (`start_time` ASC o DESC), no puede expresar un
+  corte en dos direcciones. Nuevo `EventService::indexPublicCartelera()`: recorre todas las
+  filas que matchean los criterios existentes (filtro/búsqueda reutilizados sin duplicar lógica)
+  vía el `paginateCriteria()` normal en lotes de 100 (acotado por el volumen real de este
+  dominio — la programación de un solo teatro, no una tabla de alto volumen), reordena en PHP
+  con un comparador (futuro: ascendente; pasado: descendente) y pagina el resultado ya
+  reordenado. Cableado únicamente en `PublicEventController::index()` — el CRUD admin sigue
+  usando `index()` genérico sin cambios, sin riesgo de romper un `sort` explícito que un admin
+  pida.
+- **Por qué se necesitó un método nuevo en vez de tocar `sort`**: reordenar solo dentro de una
+  página ya paginada por SQL no sirve — los eventos próximos son una fracción pequeña de la
+  tabla completa (~380 filas, mayoría histórica desde 2017), así que quedarían enterrados varias
+  páginas más adelante en el orden ASC/DESC original en vez de aparecer primero.
+- **Verificado**: nuevo test `testIndexOrdersUpcomingFirstThenMostRecentPast` (5 eventos
+  sembrados en fechas relativas a "ahora", confirma el orden exacto). `composer quality` ✅
+  (220/220 tests, 1 skip preexistente no relacionado, PHPStan sin errores). Verificado en vivo:
+  `GET /api/v1/public/events` real devuelve "Festival de Luz" (2026-08-03, la próxima función)
+  primero, y la última página termina en el evento más antiguo (2017-03-24); confirmado también
+  visualmente en `http://localhost:8184/es/cartelera`.
 
 ### EVT-DOM-006 — Fix "no se puede limpiar un campo nullable vía update" en las 7 *UpdateRequestDTO (2026-07-30)
 - **Qué**: `EventUpdateRequestDTO`, `TicketUpdateRequestDTO`, `EventReferenceUpdateRequestDTO`,

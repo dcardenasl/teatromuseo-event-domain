@@ -55,7 +55,7 @@ class PublicEventController extends ApiController
 
         return $this->handleRequest(
             function (EventIndexRequestDTO $dto, SecurityContext $context): mixed {
-                $result = $this->eventService->index($dto, $context)->toArray();
+                $result = $this->eventService->indexPublicCartelera($dto, $context)->toArray();
 
                 if (is_array($result['data'] ?? null)) {
                     foreach ($result['data'] as $key => $event) {

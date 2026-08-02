@@ -65,6 +65,26 @@ final class PublicEventControllerTest extends CIUnitTestCase
         $this->assertNotContains('Ensayo Cerrado', $titles);
     }
 
+    public function testIndexOrdersUpcomingFirstThenMostRecentPast(): void
+    {
+        // A real "cartelera" reads: what's playing next, then — scrolling down — what just
+        // played, oldest last. A single ascending/descending `sort` can't express that split,
+        // so this exercises the dedicated indexPublicCartelera() path end-to-end.
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->createEvent('Hace un año', 'published', $now->modify('-1 year')->format('Y-m-d H:i:s'));
+        $this->createEvent('Mañana', 'published', $now->modify('+1 day')->format('Y-m-d H:i:s'));
+        $this->createEvent('Ayer', 'published', $now->modify('-1 day')->format('Y-m-d H:i:s'));
+        $this->createEvent('En un mes', 'published', $now->modify('+1 month')->format('Y-m-d H:i:s'));
+        $this->createEvent('Hace una semana', 'published', $now->modify('-1 week')->format('Y-m-d H:i:s'));
+
+        $result = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])->get('/api/v1/public/events');
+
+        $result->assertStatus(200);
+        $body = json_decode((string) $result->getJSON(), true);
+        $titles = array_column($body['data'] ?? [], 'title');
+        $this->assertSame(['Mañana', 'En un mes', 'Ayer', 'Hace una semana', 'Hace un año'], $titles);
+    }
+
     public function testShowResolvesTheGeneratedSlug(): void
     {
         $created = $this->createEvent('Función Viva', 'published');
@@ -104,13 +124,14 @@ final class PublicEventControllerTest extends CIUnitTestCase
     /**
      * @return array<string, mixed>
      */
-    private function createEvent(string $title, string $status): array
+    private function createEvent(string $title, string $status, ?string $startTime = null): array
     {
         return Services::eventService(false)->store(Services::requestDtoFactory()->make(EventCreateRequestDTO::class, [
             'title' => $title,
             'event_type' => 'function',
             'description' => 'Descripción de ' . $title,
             'status' => $status,
+            'start_time' => $startTime,
         ]))->toArray();
     }
 }

@@ -11,6 +11,7 @@ use App\Libraries\Localization\PublicSlugStore;
 use App\Traits\Services\HasLocalizedTranslations;
 use App\Traits\Services\HasPublicSlugs;
 use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
+use dcardenasl\Ci4ApiCore\Dto\PaginatedResponseDTO;
 use dcardenasl\Ci4ApiCore\Dto\SecurityContext;
 use dcardenasl\Ci4ApiCore\Exceptions\NotFoundException;
 use dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface;
@@ -128,5 +129,60 @@ class EventService extends BaseCrudService implements EventServiceInterface
         $this->attachSlugsToEntity($entity);
 
         return $this->localizedMapToResponse($entity);
+    }
+
+    /**
+     * A "future ascending, then past descending" order can't be expressed by the single
+     * ORDER BY direction the generic `sort` criteria produces, and re-sorting only within an
+     * already-paginated page would miss most upcoming events (they're a small slice of the
+     * whole chronological table). So this walks every matching row through the normal
+     * paginated criteria path (bounded by this domain's real event volume — a single venue's
+     * programming, not a high-volume table), re-sorts in PHP, then paginates that result.
+     */
+    public function indexPublicCartelera(DataTransferObjectInterface $request, ?SecurityContext $context = null): DataTransferObjectInterface
+    {
+        $requestData = $request->toArray();
+        $page = max(1, (int) ($requestData['page'] ?? 1));
+        $perPage = max(1, (int) ($requestData['per_page'] ?? 20));
+
+        $criteria = $this->applyQueryOptions($requestData);
+        unset($criteria['sort']);
+        $baseCriteria = function ($builder): void {
+            $this->applyBaseCriteria($builder);
+        };
+
+        $allEntities = [];
+        $walkPage = 1;
+        do {
+            $result = $this->repository->paginateCriteria($criteria, $walkPage, 100, $baseCriteria);
+            $allEntities = array_merge($allEntities, (array) $result['data']);
+            $walkPage++;
+        } while ($walkPage <= (int) $result['last_page']);
+
+        $now = date('Y-m-d H:i:s');
+        usort($allEntities, static function (object $a, object $b) use ($now): int {
+            $aStart = (string) ($a->start_time ?? '');
+            $bStart = (string) ($b->start_time ?? '');
+            $aFuture = $aStart >= $now;
+            $bFuture = $bStart >= $now;
+            if ($aFuture !== $bFuture) {
+                return $aFuture ? -1 : 1;
+            }
+
+            return $aFuture ? $aStart <=> $bStart : $bStart <=> $aStart;
+        });
+
+        $total = count($allEntities);
+        $pageEntities = array_slice($allEntities, ($page - 1) * $perPage, $perPage);
+
+        $enriched = $this->enrichEntities($pageEntities);
+        $data = array_map(fn (object $entity): DataTransferObjectInterface => $this->mapToResponse($entity), $enriched);
+
+        return PaginatedResponseDTO::fromArray([
+            'data' => $data,
+            'total' => $total,
+            'page' => $page,
+            'per_page' => $perPage,
+        ]);
     }
 }
