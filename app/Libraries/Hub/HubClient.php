@@ -116,6 +116,6 @@ class HubClient extends CoreHubClient
 
     private function fileMetaCacheKey(int $fileId): string
     {
-        return 'hub_file_meta_' . $fileId;
+        return 'hub_file_meta_v2_' . $fileId;
     }
 }
