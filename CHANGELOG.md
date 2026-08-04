@@ -50,6 +50,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Shared API core** — upgraded `dcardenasl/ci4-api-core` to `v1.1.1`.
+- **File metadata cache versioning** — cached Hub file metadata now uses the shared cache
+  version to avoid stale cross-version results.
+
 - **Event type search performance** — added a full-text index for event type search.
 - **Seed baseline** — removed demo event data and its seeded rows from the domain baseline.
 
