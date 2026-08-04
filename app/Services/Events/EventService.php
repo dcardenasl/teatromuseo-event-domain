@@ -146,10 +146,32 @@ class EventService extends BaseCrudService implements EventServiceInterface
         $perPage = max(1, (int) ($requestData['per_page'] ?? 20));
 
         $criteria = $this->applyQueryOptions($requestData);
+        $requestedSort = trim((string) ($requestData['sort'] ?? ''));
         unset($criteria['sort']);
         $baseCriteria = function ($builder): void {
             $this->applyBaseCriteria($builder);
         };
+
+        // An explicit editor/public-listing sort is authoritative. The
+        // special chronological ordering remains the default only when no
+        // sort was requested, preserving the existing cartelera behavior.
+        if ($requestedSort !== '') {
+            $result = $this->repository->paginateCriteria(
+                [...$criteria, 'sort' => $requestedSort],
+                $page,
+                $perPage,
+                $baseCriteria,
+            );
+            $entities = $this->enrichEntities((array) $result['data']);
+            $data = array_map(fn (object $entity): DataTransferObjectInterface => $this->mapToResponse($entity), $entities);
+
+            return PaginatedResponseDTO::fromArray([
+                'data' => $data,
+                'total' => (int) $result['total'],
+                'page' => (int) $result['page'],
+                'per_page' => (int) $result['per_page'],
+            ]);
+        }
 
         $allEntities = [];
         $walkPage = 1;

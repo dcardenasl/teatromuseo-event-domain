@@ -46,7 +46,7 @@ class PublicEventController extends ApiController
 
         $sort = $request->getGet('sort');
         if (! is_string($sort) || trim($sort) === '') {
-            $sort = 'start_time';
+            $sort = '';
         }
 
         $request->setGlobal('get', array_merge($request->getGet(), [
