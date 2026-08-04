@@ -43,7 +43,13 @@ class PermissionFilter implements FilterInterface
                 ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED);
         }
 
-        if ($required === '' || ! in_array($required, $permissions, true)) {
+        // SuperAdmin is a platform-level role. Domain permissions are still
+        // registered for normal roles, but a superadmin must not become
+        // unusable merely because a newly added domain permission has not yet
+        // been assigned to the role or an introspection cache is stale.
+        $isSuperAdmin = in_array('iam.superadmin-access', $permissions, true);
+
+        if ($required === '' || (! $isSuperAdmin && ! in_array($required, $permissions, true))) {
             return Services::response()
                 ->setJSON(ApiResponse::forbidden(lang('Api.insufficientPermissions')))
                 ->setStatusCode(ResponseInterface::HTTP_FORBIDDEN);
