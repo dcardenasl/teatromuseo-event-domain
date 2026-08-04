@@ -33,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Explicit public listing ordering** — public event queries now honor an editor or caller's
+  requested sort while retaining chronological ordering when no sort is provided.
 - **Localized event type slugs** — event type slugs are backfilled deterministically and public
   responses preserve their canonical localized values.
 - **Deterministic localization fallback** — slug transliteration now remains stable for accented
