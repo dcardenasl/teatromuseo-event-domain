@@ -12,7 +12,7 @@ trait EventsDomainServices
             return static::getSharedInstance('localizedTranslationStore');
         }
 
-        $request = \Config\Services::request();
+        $request = \Config\Services::request(false);
 
         return new \App\Libraries\Localization\LocalizedTranslationStore(
             new \App\Models\EventTranslationModel(),
@@ -26,7 +26,7 @@ trait EventsDomainServices
             return static::getSharedInstance('publicSlugStore');
         }
 
-        $request = \Config\Services::request();
+        $request = \Config\Services::request(false);
 
         return new \App\Libraries\Localization\PublicSlugStore(
             new \App\Models\EventPublicSlugModel(),
@@ -155,5 +155,25 @@ trait EventsDomainServices
             return static::getSharedInstance('fileUsageService');
         }
         return new \App\Services\Events\FileUsageService(\Config\Database::connect());
+    }
+    public static function eventTypeResponseMapper(bool $getShared = true): \dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface
+    {
+        if ($getShared) {
+            return static::getSharedInstance('eventTypeResponseMapper');
+        }
+        return new \dcardenasl\Ci4ApiCore\Mappers\DtoResponseMapper(\App\DTO\Response\Events\EventTypeResponseDTO::class);
+    }
+    public static function eventTypeService(bool $getShared = true): \App\Interfaces\Events\EventTypeServiceInterface
+    {
+        if ($getShared) {
+            return static::getSharedInstance('eventTypeService');
+        }
+        return new \App\Services\Events\EventTypeService(
+            new \dcardenasl\Ci4ApiCore\Repositories\GenericRepository(model(\App\Models\EventTypeModel::class)),
+            static::eventTypeResponseMapper(),
+            static::localizedTranslationStore(),
+            static::publicSlugStore(),
+            new \App\Models\EventPublicSlugModel(),
+        );
     }
 }

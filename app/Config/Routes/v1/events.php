@@ -17,6 +17,19 @@ $routes->group('events', ['namespace' => '\App\Controllers\Api\V1\Events'], func
         $routes->group('', ['filter' => 'permission:event.events.delete'], function ($routes): void {
             $routes->delete('events/(:num)', 'EventController::delete/$1');
         });
+        // Event Type Routes
+        $routes->group('', ['filter' => 'permission:event.event-types.read'], function ($routes): void {
+            $routes->get('event-types/check-slug', 'EventTypeController::checkSlug');
+            $routes->get('event-types', 'EventTypeController::index');
+            $routes->get('event-types/(:num)', 'EventTypeController::show/$1');
+        });
+        $routes->group('', ['filter' => 'permission:event.event-types.write'], function ($routes): void {
+            $routes->post('event-types', 'EventTypeController::create');
+            $routes->put('event-types/(:num)', 'EventTypeController::update/$1');
+        });
+        $routes->group('', ['filter' => 'permission:event.event-types.delete'], function ($routes): void {
+            $routes->delete('event-types/(:num)', 'EventTypeController::delete/$1');
+        });
         // Venue Routes
         $routes->group('', ['filter' => 'permission:event.venues.read'], function ($routes): void {
             $routes->get('venues', 'VenueController::index');
