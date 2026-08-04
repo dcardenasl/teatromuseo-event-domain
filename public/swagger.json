@@ -498,6 +498,168 @@
                 }
             }
         },
+        "/api/v1/events/event-types": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "List EventTypes",
+                "operationId": "a9c104b84bd8f672e014d8627c08ee5b",
+                "responses": {
+                    "200": {
+                        "description": "List retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/EventTypeResponse"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Create new EventType",
+                "operationId": "eb2450514df461697d512e7b2b1fc590",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EventTypeCreateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/events/event-types/{id}": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get EventType by ID",
+                "operationId": "e3ae5cd3abccdd6600a9537b4ce99ed1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EventTypeResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Update existing EventType",
+                "operationId": "0727309296042e774781d1c8c182ee24",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EventTypeUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EventTypeResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Delete EventType by ID",
+                "operationId": "cb069837906a0f2d983d6ec0c8cf7e93",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted successfully"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
         "/api/v1/events/occurrences": {
             "get": {
                 "tags": [
@@ -656,6 +818,43 @@
                     },
                     "404": {
                         "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/public/events/types": {
+            "get": {
+                "tags": [
+                    "Public Events"
+                ],
+                "summary": "List active event types for public filters",
+                "description": "Returns the administrable event-type catalogue with localized names. Only active types are exposed.",
+                "operationId": "baf2d8dfcaf2e74029bc51817f7e2e9b",
+                "responses": {
+                    "200": {
+                        "description": "List retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/EventTypeResponse"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid X-App-Key"
                     }
                 }
             }
@@ -1499,15 +1698,9 @@
                         "type": "string"
                     },
                     "event_type": {
-                        "description": "Programming type",
+                        "description": "Programming type slug",
                         "type": "string",
-                        "enum": [
-                            "function",
-                            "festival",
-                            "course",
-                            "workshop",
-                            "other"
-                        ]
+                        "example": "function"
                     },
                     "description": {
                         "description": "description",
@@ -1621,6 +1814,69 @@
                     "metadata": {
                         "description": "metadata",
                         "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "EventTypeCreateRequest": {
+                "properties": {
+                    "slug": {
+                        "description": "slug",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "name",
+                        "type": "string"
+                    },
+                    "translations": {
+                        "description": "Localized names keyed by locale code",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "sort_order": {
+                        "description": "Managed exclusively by the reorder endpoint",
+                        "type": "integer",
+                        "default": 0
+                    },
+                    "is_active": {
+                        "description": "is_active",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "EventTypeIndexRequest": {},
+            "EventTypeUpdateRequest": {
+                "properties": {
+                    "slug": {
+                        "description": "slug",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "name": {
+                        "description": "name",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "translations": {
+                        "description": "Localized names keyed by locale code",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        },
+                        "nullable": true
+                    },
+                    "sort_order": {
+                        "description": "sort_order",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "is_active": {
+                        "description": "is_active",
+                        "type": "boolean",
                         "nullable": true
                     }
                 },
@@ -2373,6 +2629,65 @@
                     "status": {
                         "description": "status",
                         "type": "string"
+                    },
+                    "created_at": {
+                        "description": "Creation timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "example": "2026-02-26 12:00:00",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "EventTypeResponse": {
+                "title": "EventType Response",
+                "required": [
+                    "id",
+                    "name",
+                    "sort_order",
+                    "is_active",
+                    "translations",
+                    "localized",
+                    "slugs"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique identifier",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "slug": {
+                        "description": "slug",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "name",
+                        "type": "string"
+                    },
+                    "sort_order": {
+                        "description": "sort_order",
+                        "type": "integer"
+                    },
+                    "is_active": {
+                        "description": "is_active",
+                        "type": "boolean"
+                    },
+                    "translations": {
+                        "description": "All stored localized content rows",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "localized": {
+                        "description": "Name resolved from Accept-Language",
+                        "type": "object"
                     },
                     "created_at": {
                         "description": "Creation timestamp",

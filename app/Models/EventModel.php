@@ -36,7 +36,7 @@ class EventModel extends BaseAuditableModel
         // time allows the beforeInsert hook to create it atomically.
         'uuid' => 'permit_empty|string|max_length[255]|is_unique[events.uuid]',
         'title' => 'required|string|max_length[255]',
-        'event_type' => 'required|in_list[function,festival,course,workshop,other]',
+        'event_type' => 'required|string|max_length[80]|is_not_unique[event_types.slug]',
         'description' => 'required|string',
         'cover_file_id' => 'permit_empty|integer',
         'gallery_file_ids' => 'permit_empty|string',

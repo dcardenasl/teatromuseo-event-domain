@@ -14,7 +14,7 @@ readonly class EventCreateRequestDTO extends BaseRequestDTO
     public string $uuid;
     #[OA\Property(description: 'title', type: 'string')]
     public string $title;
-    #[OA\Property(description: 'Programming type', type: 'string', enum: ['function', 'festival', 'course', 'workshop', 'other'])]
+    #[OA\Property(description: 'Programming type slug', type: 'string', example: 'function')]
     public string $event_type;
     #[OA\Property(description: 'description', type: 'string')]
     public string $description;
@@ -43,7 +43,7 @@ readonly class EventCreateRequestDTO extends BaseRequestDTO
         return [
             'uuid' => 'permit_empty|string|max_length[255]|is_unique[events.uuid]',
             'title' => 'required|string|max_length[255]',
-            'event_type' => 'required|in_list[function,festival,course,workshop,other]',
+            'event_type' => 'required|string|max_length[80]|is_not_unique[event_types.slug]',
             'description' => 'required|string',
             'cover_file_id' => 'permit_empty|integer',
             'gallery_file_ids' => 'permit_empty|string',

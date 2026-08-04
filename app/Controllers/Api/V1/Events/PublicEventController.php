@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers\Api\V1\Events;
 
 use App\DTO\Request\Events\EventIndexRequestDTO;
+use App\DTO\Request\Events\EventTypeIndexRequestDTO;
 use App\Interfaces\Events\EventServiceInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Config\Services;
@@ -70,6 +71,23 @@ class PublicEventController extends ApiController
             },
             EventIndexRequestDTO::class
         );
+    }
+
+    /**
+     * Public catalogue of active event types used by listing filters.
+     */
+    public function types(): ResponseInterface
+    {
+        return $this->handleRequest(function (): mixed {
+            return Services::eventTypeService()->index(
+                Services::requestDtoFactory()->make(EventTypeIndexRequestDTO::class, [
+                    'page' => 1,
+                    'per_page' => 100,
+                    'sort' => 'sort_order',
+                    'filter' => ['is_active' => '1'],
+                ])
+            );
+        });
     }
 
     /**

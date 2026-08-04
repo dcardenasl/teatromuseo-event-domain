@@ -65,6 +65,17 @@ final class PublicEventControllerTest extends CIUnitTestCase
         $this->assertNotContains('Ensayo Cerrado', $titles);
     }
 
+    public function testTypesReturnsActiveEventTypeCatalogue(): void
+    {
+        $result = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])->get('/api/v1/public/events/types');
+
+        $result->assertStatus(200);
+        $body = json_decode((string) $result->getJSON(), true);
+        $types = array_column($body['data'] ?? [], 'slug');
+
+        $this->assertSame(['function', 'festival', 'course', 'workshop', 'other'], $types);
+    }
+
     public function testIndexOrdersUpcomingFirstThenMostRecentPast(): void
     {
         // A real "cartelera" reads: what's playing next, then — scrolling down — what just

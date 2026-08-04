@@ -46,7 +46,7 @@ readonly class EventUpdateRequestDTO extends BaseRequestDTO
         return [
             'uuid' => 'permit_empty|string|max_length[255]',
             'title' => 'permit_empty|string|max_length[255]',
-            'event_type' => 'permit_empty|in_list[function,festival,course,workshop,other]',
+            'event_type' => 'permit_empty|string|max_length[80]|is_not_unique[event_types.slug]',
             'description' => 'permit_empty|string',
             'cover_file_id' => 'permit_empty|integer',
             'gallery_file_ids' => 'permit_empty|string',
