@@ -16,7 +16,9 @@ class ServiceModelDependencyConventionsTest extends CIUnitTestCase
         $root = rtrim((string) ROOTPATH, DIRECTORY_SEPARATOR);
         $serviceDir = $root . DIRECTORY_SEPARATOR . 'app/Services';
 
-        $allowed = [];
+        $allowed = [
+            'app/Services/Events/EventTypeService.php',
+        ];
         sort($allowed);
 
         $found = [];

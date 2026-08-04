@@ -106,7 +106,8 @@ trait HasPublicSlugs
         foreach ($entities as $entity) {
             $entitySlugs = $slugs[(int) ($entity->id ?? 0)] ?? [];
             $entity->slugs = $entitySlugs;
-            $entity->slug = $this->slugStore->resolveSlug($entitySlugs);
+            $entity->slug = $this->slugStore->resolveSlug($entitySlugs)
+                ?: trim((string) ($entity->slug ?? ''));
         }
 
         return $entities;
@@ -124,6 +125,7 @@ trait HasPublicSlugs
 
         $entitySlugs = $this->slugStore->slugsForResource($this->slugResourceType, (int) ($entity->id ?? 0));
         $entity->slugs = $entitySlugs;
-        $entity->slug = $this->slugStore->resolveSlug($entitySlugs);
+        $entity->slug = $this->slugStore->resolveSlug($entitySlugs)
+            ?: trim((string) ($entity->slug ?? ''));
     }
 }
