@@ -18,6 +18,7 @@ final class TranslationFieldCatalog
     /** @var array<string, list<string>> */
     private const FIELDS = [
         'event'      => ['title', 'description'],
+        'event_type' => ['name'],
         'venue'      => ['name', 'description'],
         'ticket_type' => ['name'],
     ];
