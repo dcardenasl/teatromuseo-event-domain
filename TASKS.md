@@ -3,7 +3,7 @@
 > Fuente de verdad para trabajo en este repo.
 > Historial de completadas: ver `TASKS_ARCHIVE.md`.
 > Cross-repo: ver `../TASKS.md`.
-> Última actualización: 2026-08-05 (SEC-06 + CFG-04 completadas)
+> Última actualización: 2026-08-05 (SEC-06 + CFG-04 + CFG-02 + CFG-07 + CFG-08 completadas)
 
 ---
 
@@ -20,27 +20,17 @@
 > Orden y dependencias cross-repo: [`../TASKS.md`](../TASKS.md)
 >
 > La auditoría partió de un CI que nunca se ejecutaba en `dev` y de un baseline de PHPStan de
-> 125 errores ocultos. SEC-06 y CFG-04 ya fueron resueltas en esta sesión; las tareas siguientes
-> permanecen pendientes.
+> 125 errores ocultos. SEC-06, CFG-04, CFG-02, CFG-07 y CFG-08 ya fueron resueltas en esta sesión;
+> las tareas siguientes permanecen pendientes.
 
 ### Fase 1 — Seguridad
 
 ### Fase 2 — Configuración y CI
 
-- [ ] **CFG-02 — 18 variables leídas y no documentadas**, entre ellas `HUB_INTERNAL_SECRET` /
-  `hub.internalSecret`, `hub.adminToken`, `WEB_API_KEY`, `QUEUE_REDIS_*` y
-  `EVENT_LEGACY_FALLBACK_LOCALE`.
-- [ ] **CFG-07 — `docker/entrypoint.sh` no está en git**, mientras api, cms y catalog sí lo
-  rastrean → hueco de reproducibilidad de build. Falta también el `apt-get upgrade -y` de parcheo
-  de CVE del `Dockerfile` y sobra el `LABEL description` copiado (*"...with JWT authentication"*).
-- [ ] **CFG-08 — PHPStan en 2.1.56**, la versión más atrasada de la flota (el resto entre 2.2.1 y
-  2.2.5). Falta `pre-push`. Matriz de CI en 8.2–8.3 declarando `"php": "^8.2"`.
-  Eliminar `.env.bak.1785113747` (archivo de respaldo suelto).
-
 ### Fase 3 — Extracción a `ci4-api-core`
 
-- [ ] **CORE-01 — Extraer el stack de localización.** Este repo es la **implementación de
-  referencia** de la que se portó la de catalog: ~830 líneas hoy forkeadas.
+- [ ] **CORE-01 — Extraer el stack de localización.** Este repo es la **implementación de referencia** de la
+  que se portó la de catalog: ~830 líneas hoy forkeadas.
   `RequestLocaleResolver.php` y `SlugGenerator.php` son byte-idénticos entre ambos;
   `LocalizedTranslationStore.php` y `PublicSlugStore.php` difieren en 3 líneas.
   En las dos divergencias funcionales, **la versión de este repo es la correcta**: el respaldo
@@ -102,6 +92,22 @@
 ---
 
 ## ✅ Completadas
+
+### CFG-08 — Tooling y hook de publicación alineados (2026-08-05)
+- PHPStan actualizado a 2.2.8 en `composer.json` y `composer.lock`; añadido `pre-push` no
+  bloqueante e integrado en la instalación automática de hooks; matriz de CI verificada para
+  PHP 8.2–8.3; eliminado el backup obsoleto `.env.bak.1785113747`.
+- **Verificado**: `composer quality` ✅ — PHPStan nivel 8 sin errores, OpenAPI válido,
+  arquitectura/i18n correctos, 226 pruebas, 570 aserciones y 1 skip preexistente.
+
+### CFG-07 — Contenedor reproducible y sin descripción heredada (2026-08-05)
+- Se añadió `docker/entrypoint.sh` al repositorio para esperar la base de datos y ejecutar las
+  migraciones antes de Apache; el `Dockerfile` aplica actualizaciones de seguridad y describe
+  correctamente el dominio de eventos, sin afirmar autenticación JWT.
+
+### CFG-02 — Variables de entorno documentadas (2026-08-05)
+- `.env.example` ahora documenta las 18 claves leídas por event-domain, con defaults seguros,
+  secretos vacíos y alias compatibilidad claramente marcados.
 
 ### SEC-06 + CFG-04 — CI en `dev` y PHPStan sin baseline (2026-08-05)
 - **SEC-06**: el workflow de CI ahora se ejecuta en `push` sobre `main` y `dev`.
