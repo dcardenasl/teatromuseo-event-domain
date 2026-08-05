@@ -3,7 +3,7 @@
 > Fuente de verdad para trabajo en este repo.
 > Historial de completadas: ver `TASKS_ARCHIVE.md`.
 > Cross-repo: ver `../TASKS.md`.
-> Última actualización: 2026-08-02 (EVT-DOM-008 ✅ completado — eliminados eventos de ejemplo)
+> Última actualización: 2026-08-05 (SEC-06 + CFG-04 completadas)
 
 ---
 
@@ -15,11 +15,101 @@
 
 ## 🟡 Próximo
 
-*(vacío)*
+> Saneamiento arquitectónico — auditoría del 2026-08-05.
+> **Contexto, evidencia y rutas exactas:** [`../docs/plan/2026-08-05-saneamiento-arquitectonico.md`](../docs/plan/2026-08-05-saneamiento-arquitectonico.md)
+> Orden y dependencias cross-repo: [`../TASKS.md`](../TASKS.md)
+>
+> La auditoría partió de un CI que nunca se ejecutaba en `dev` y de un baseline de PHPStan de
+> 125 errores ocultos. SEC-06 y CFG-04 ya fueron resueltas en esta sesión; las tareas siguientes
+> permanecen pendientes.
+
+### Fase 1 — Seguridad
+
+### Fase 2 — Configuración y CI
+
+- [ ] **CFG-02 — 18 variables leídas y no documentadas**, entre ellas `HUB_INTERNAL_SECRET` /
+  `hub.internalSecret`, `hub.adminToken`, `WEB_API_KEY`, `QUEUE_REDIS_*` y
+  `EVENT_LEGACY_FALLBACK_LOCALE`.
+- [ ] **CFG-07 — `docker/entrypoint.sh` no está en git**, mientras api, cms y catalog sí lo
+  rastrean → hueco de reproducibilidad de build. Falta también el `apt-get upgrade -y` de parcheo
+  de CVE del `Dockerfile` y sobra el `LABEL description` copiado (*"...with JWT authentication"*).
+- [ ] **CFG-08 — PHPStan en 2.1.56**, la versión más atrasada de la flota (el resto entre 2.2.1 y
+  2.2.5). Falta `pre-push`. Matriz de CI en 8.2–8.3 declarando `"php": "^8.2"`.
+  Eliminar `.env.bak.1785113747` (archivo de respaldo suelto).
+
+### Fase 3 — Extracción a `ci4-api-core`
+
+- [ ] **CORE-01 — Extraer el stack de localización.** Este repo es la **implementación de
+  referencia** de la que se portó la de catalog: ~830 líneas hoy forkeadas.
+  `RequestLocaleResolver.php` y `SlugGenerator.php` son byte-idénticos entre ambos;
+  `LocalizedTranslationStore.php` y `PublicSlugStore.php` difieren en 3 líneas.
+  En las dos divergencias funcionales, **la versión de este repo es la correcta**: el respaldo
+  `?: trim((string) ($entity->slug ?? ''))` de `HasPublicSlugs.php:109-110,131-132`
+  (catalog lo perdió → `SEC-05`), y la ausencia de `$data['id'] = $id;` en `beforeUpdate()`.
+- [ ] **CORE-02 — Consolidar filtros y boilerplate.** Aportar la versión de
+  `app/Filters/PermissionFilter.php:46-52` (la única que concede paso a `iam.superadmin-access`,
+  con su justificación en comentario) y el `onlyEntities()` de `AuditLogModel` que api y cms nunca
+  recibieron.
+- [ ] **CORE-03 — `app/Config/Api.php` es una copia verbatim de 148 líneas** de la que publica
+  `ci4-api-core`, arrastrando toda la configuración JWT en una app que no puede firmar ni verificar
+  un JWT. Extender la base del paquete como ya hace el hub.
+- [ ] **CORE-06 — Convención de permisos.** Hoy `event.<kebab-plural>.<read|write|delete>`
+  (`event.event-references.write`), incompatible con cms y catalog. ⚠️ Ventana de mantenimiento.
+
+### Fase 4 — Coherencia de capas
+
+- [ ] **LAYER-01 — `Controllers/Api/V1/Events/PublicEventController.php` rompe cuatro reglas a la
+  vez:** (1) **muta el superglobal de la petición** para inyectar filtros y un `sort` por defecto
+  (l.42-56); (2) **llama al cliente del hub desde el controlador** (l.101,
+  `Services::hubClient()`); (3) lleva un `resolveMediaFields()` privado de ~55 líneas que difiere
+  de la copia de catalog **solo por el nombre de la variable**; (4) `show()` recibe `(array $dto, ...)`
+  con `$dto` sin usar (l.34).
+- [ ] **LAYER-03 — `Services/Events/BookingService.php`** accede al builder crudo en l.90-102 y
+  l.204-222 — **el mismo bloque duplicado dentro de la misma clase** (locking de `ticket_types`,
+  `occurrences`, `events`). Igual `Services/Events/FileUsageService.php:41`.
+- [ ] **LAYER-04 — Falta `ControllerModelDependencyConventionsTest`**, que sí existe en cms y
+  catalog.
+- [ ] **LAYER-06 — Esquema deprecado todavía en el contrato público.**
+  `2026-07-27-022000_MakeLegacyEventScheduleNullable.php` anuló `events.start_time`, `end_time`,
+  `venue`, `capacity` y `available_spots`, superados por las tablas `occurrences` y `venues`.
+  Los cinco **siguen** en `EventModel::$allowedFields/$filterableFields/$sortableFields/$searchableFields`
+  (l.23-32) y en `EventResponseDTO` (l.46-55, 79-83). Retirarlos, con nota de versión en el swagger.
+
+### Fase 5 — Migraciones y semillas
+
+- [ ] **MIG-01 — Cadena de parcheo:** `BackfillEventTypeLocalizedSlugs` →
+  `EnsureEventTypeLocalizedCatalog` → `RepairEventTypeSlugFormat`, las tres en 60 minutos. El
+  docblock de la tercera lo confiesa (*"Rewrites event-type slugs produced by the old iconv-only
+  fallback"*). Consolidar.
+- [ ] **MIG-02 — Las tablas de localización no tienen claves foráneas** hacia sus padres
+  (`event_translations`, `event_public_slugs`). El `status` de `events`/`bookings`/`occurrences`/
+  `tickets` usa columnas planas con `addKey('status')`, mientras cms usa `ENUM` crudo y catalog
+  ninguno de los dos — tres enfoques para el mismo problema.
+- [ ] **MIG-03 — Cero seeders.** Esta app no tiene ningún camino de bootstrap, a diferencia de api
+  y cms. Decidir si necesita uno (mínimo: venues y ticket types base).
+- [ ] **HYG-01 — Purgar y rotar `writable/debugbar` (411 MB).**
+
+### Fase 6 — Limpieza y docs
+
+- [ ] **DEAD-02 — 13 directorios vacíos** que dejó un módulo demo ya borrado: `app/Support/`,
+  `Documentation/{Demo,Example}/`, `Services/{Demo,Core}/`, `Interfaces/{Demo,System}/`,
+  `DTO/{Request,Response}/{Demo,Example}/`, `Libraries/{Security,Queue/Jobs}/`.
+  Corregir también `declare (strict_types=1);` (con espacio) en
+  `app/Config/Routes/v1/events.php:3` — php-cs-fixer no pasa por los archivos de ruta generados.
+- [ ] **DOC-01 — Crear el `AGENTS.md` que falta** en este repo (existe en bff, catalog, cms y
+  tótem; el `AGENTS.md` raíz ni siquiera lista a esta app).
 
 ---
 
 ## ✅ Completadas
+
+### SEC-06 + CFG-04 — CI en `dev` y PHPStan sin baseline (2026-08-05)
+- **SEC-06**: el workflow de CI ahora se ejecuta en `push` sobre `main` y `dev`.
+- **CFG-04**: se incorporaron `app/DTO`, `app/Repositories` y `app/Commands` al análisis,
+  se retiró el baseline de 745 líneas y se corrigieron los errores reales descubiertos. El
+  archivo `phpstan-baseline.neon` queda con `ignoreErrors: []` y no se añadieron supresiones.
+- **Verificado**: `composer quality` ✅ — PHPStan nivel 8 sin errores, OpenAPI válido,
+  arquitectura/i18n correctos, 226 pruebas, 570 aserciones y 1 skip preexistente.
 
 ### EVT-DOM-008 — Eliminar eventos de ejemplo mezclados con los reales (2026-08-02)
 - **Qué**: David notó que la Cartelera mezclaba eventos reales (migrados desde la BD legacy de
