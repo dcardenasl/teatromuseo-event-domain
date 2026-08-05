@@ -21,11 +21,14 @@ RUN composer dump-autoload --optimize --no-dev
 # Stage 2: Production image
 FROM php:8.2-apache
 
-LABEL maintainer="CodeIgniter 4 API Starter"
-LABEL description="Production-ready CI4 API with JWT authentication"
+LABEL maintainer="Teatro Museo"
+LABEL description="Production-ready Teatro Museo event domain API"
 
-# Install system deps, PHP extensions, and enable Apache modules in one layer
+# Install system deps, PHP extensions, and enable Apache modules in one layer.
+# Upgrade the base image packages before installing runtime dependencies so a
+# rebuild receives security fixes released after the PHP image was published.
 RUN apt-get update \
+    && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
         git \
         curl \
@@ -70,6 +73,9 @@ RUN chown -R www-data:www-data /var/www/html \
 RUN mkdir -p writable/cache writable/logs writable/session writable/uploads writable/debugbar \
     && chown -R www-data:www-data writable
 
+# Wait for MySQL and apply pending schema migrations before Apache accepts traffic.
+COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/teatromuseo-event-entrypoint
+
 # Health check — uses /ping (lightweight, no DB dependency)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
     CMD curl -f http://localhost/ping || exit 1
@@ -77,8 +83,10 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
 # Expose port 80
 EXPOSE 80
 
-# Switch to www-data user
+# Switch to www-data user. The entrypoint is intentionally compatible with
+# this non-root runtime: migrations only require database access and the
+# writable tree is prepared above.
 USER www-data
 
-# Start Apache
+ENTRYPOINT ["teatromuseo-event-entrypoint"]
 CMD ["apache2-foreground"]
