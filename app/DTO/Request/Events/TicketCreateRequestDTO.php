@@ -4,12 +4,28 @@ declare(strict_types=1);
 
 namespace App\DTO\Request\Events;
 
+use CodeIgniter\Validation\ValidationInterface;
 use dcardenasl\Ci4ApiCore\Dto\BaseRequestDTO;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'TicketCreateRequest')]
 readonly class TicketCreateRequestDTO extends BaseRequestDTO
 {
+    public function __construct(array $data, ?ValidationInterface $validation = null)
+    {
+        parent::__construct($data, $validation);
+
+        $this->uuid = (string) ($data['uuid'] ?? '');
+        $this->booking_id = (int) ($data['booking_id'] ?? 0);
+        $this->ticket_type_id = (int) ($data['ticket_type_id'] ?? 0);
+        $this->holder_name = (string) ($data['holder_name'] ?? '');
+        $this->holder_email = (string) ($data['holder_email'] ?? '');
+        $this->qr_code_token = (string) ($data['qr_code_token'] ?? '');
+        $this->status = (string) ($data['status'] ?? '');
+        $this->checked_in_at = $data['checked_in_at'] ?? null;
+
+    }
+
     #[OA\Property(description: 'uuid', type: 'string')]
     public string $uuid;
     #[OA\Property(description: 'booking_id', type: 'integer')]
@@ -43,14 +59,6 @@ readonly class TicketCreateRequestDTO extends BaseRequestDTO
 
     protected function map(array $data): void
     {
-        $this->uuid = (string) ($data['uuid'] ?? '');
-        $this->booking_id = (int) ($data['booking_id'] ?? 0);
-        $this->ticket_type_id = (int) ($data['ticket_type_id'] ?? 0);
-        $this->holder_name = (string) ($data['holder_name'] ?? '');
-        $this->holder_email = (string) ($data['holder_email'] ?? '');
-        $this->qr_code_token = (string) ($data['qr_code_token'] ?? '');
-        $this->status = (string) ($data['status'] ?? '');
-        $this->checked_in_at = $data['checked_in_at'] ?? null;
     }
 
     public function toArray(): array

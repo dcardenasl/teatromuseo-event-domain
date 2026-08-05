@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DTO\Response\Events;
 
+use App\Traits\DTO\NormalizesLocalizedPayload;
 use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
 use OpenApi\Attributes as OA;
 
@@ -14,6 +15,8 @@ use OpenApi\Attributes as OA;
 )]
 final readonly class EventTypeResponseDTO implements DataTransferObjectInterface
 {
+    use NormalizesLocalizedPayload;
+
     public function __construct(
         #[OA\Property(description: 'Unique identifier', example: 1)]
         public int $id,
@@ -27,10 +30,10 @@ final readonly class EventTypeResponseDTO implements DataTransferObjectInterface
         public bool $is_active,
         /** @var array<string, string> locale => localized public slug */
         public array $slugs = [],
-        /** @var list<array{locale: string, fields: array<string, string>}> */
+        /** @var list<array<string, string>> */
         #[OA\Property(description: 'All stored localized content rows', type: 'array', items: new OA\Items(type: 'object'))]
         public array $translations = [],
-        /** @var array{locale: string, name?: string} */
+        /** @var array<string, string> */
         #[OA\Property(description: 'Name resolved from Accept-Language', type: 'object')]
         public array $localized = [],
         #[OA\Property(property: 'created_at', description: 'Creation timestamp', example: '2026-02-26 12:00:00', nullable: true)]
@@ -62,8 +65,8 @@ final readonly class EventTypeResponseDTO implements DataTransferObjectInterface
             id: (int) ($data['id'] ?? 0),
             slug: (string) ($data['slug'] ?? ''),
             name: (string) ($data['name'] ?? ''),
-            translations: $translations,
-            localized: is_array($data['localized'] ?? null) ? $data['localized'] : [],
+            translations: self::normalizeTranslationRows($translations),
+            localized: self::normalizeLocalized($data['localized'] ?? null),
             sort_order: (int) ($data['sort_order'] ?? 0),
             is_active: (bool) ($data['is_active'] ?? false),
             slugs: is_array($data['slugs'] ?? null) ? $data['slugs'] : [],

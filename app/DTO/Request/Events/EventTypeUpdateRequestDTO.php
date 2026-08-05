@@ -4,12 +4,27 @@ declare(strict_types=1);
 
 namespace App\DTO\Request\Events;
 
+use CodeIgniter\Validation\ValidationInterface;
 use dcardenasl\Ci4ApiCore\Dto\BaseRequestDTO;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'EventTypeUpdateRequest')]
 readonly class EventTypeUpdateRequestDTO extends BaseRequestDTO
 {
+    public function __construct(array $data, ?ValidationInterface $validation = null)
+    {
+        parent::__construct($data, $validation);
+
+        $this->slug = $data['slug'] ?? null;
+        $this->name = $data['name'] ?? null;
+        $this->translations = array_key_exists('translations', $data) && is_array($data['translations'])
+            ? array_values($data['translations'])
+            : null;
+        $this->sort_order = isset($data['sort_order']) ? (int) $data['sort_order'] : null;
+        $this->is_active = isset($data['is_active']) ? (bool) $data['is_active'] : null;
+
+    }
+
     #[OA\Property(description: 'slug', type: 'string', nullable: true)]
     public ?string $slug;
     #[OA\Property(description: 'name', type: 'string', nullable: true)]
@@ -42,13 +57,6 @@ readonly class EventTypeUpdateRequestDTO extends BaseRequestDTO
      */
     protected function map(array $data): void
     {
-        $this->slug = $data['slug'] ?? null;
-        $this->name = $data['name'] ?? null;
-        $this->translations = array_key_exists('translations', $data) && is_array($data['translations'])
-            ? array_values($data['translations'])
-            : null;
-        $this->sort_order = isset($data['sort_order']) ? (int) $data['sort_order'] : null;
-        $this->is_active = isset($data['is_active']) ? (bool) $data['is_active'] : null;
     }
 
     /**

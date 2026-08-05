@@ -4,12 +4,25 @@ declare(strict_types=1);
 
 namespace App\DTO\Request\Events;
 
+use CodeIgniter\Validation\ValidationInterface;
 use dcardenasl\Ci4ApiCore\Dto\BaseRequestDTO;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'EventTypeCreateRequest')]
 readonly class EventTypeCreateRequestDTO extends BaseRequestDTO
 {
+    public function __construct(array $data, ?ValidationInterface $validation = null)
+    {
+        parent::__construct($data, $validation);
+
+        $this->slug = (string) ($data['slug'] ?? '');
+        $this->name = (string) ($data['name'] ?? '');
+        $this->translations = is_array($data['translations'] ?? null) ? array_values($data['translations']) : [];
+        $this->sort_order = (int) ($data['sort_order'] ?? 0);
+        $this->is_active = (bool) ($data['is_active'] ?? false);
+
+    }
+
     #[OA\Property(description: 'slug', type: 'string')]
     public string $slug;
     #[OA\Property(description: 'name', type: 'string')]
@@ -42,11 +55,6 @@ readonly class EventTypeCreateRequestDTO extends BaseRequestDTO
      */
     protected function map(array $data): void
     {
-        $this->slug = (string) ($data['slug'] ?? '');
-        $this->name = (string) ($data['name'] ?? '');
-        $this->translations = is_array($data['translations'] ?? null) ? array_values($data['translations']) : [];
-        $this->sort_order = (int) ($data['sort_order'] ?? 0);
-        $this->is_active = (bool) ($data['is_active'] ?? false);
     }
 
     /**

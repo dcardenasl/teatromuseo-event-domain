@@ -4,12 +4,48 @@ declare(strict_types=1);
 
 namespace App\DTO\Request\Events;
 
+use CodeIgniter\Validation\ValidationInterface;
 use dcardenasl\Ci4ApiCore\Dto\BaseRequestDTO;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'VenueUpdateRequest')]
 readonly class VenueUpdateRequestDTO extends BaseRequestDTO
 {
+    public function __construct(array $data, ?ValidationInterface $validation = null)
+    {
+        parent::__construct($data, $validation);
+
+        $this->name = array_key_exists('name', $data) && $data['name'] !== null ? (string) $data['name'] : null;
+        $this->slug = array_key_exists('slug', $data) && $data['slug'] !== null ? (string) $data['slug'] : null;
+        $this->description = array_key_exists('description', $data) && $data['description'] !== null && $data['description'] !== '' ? (string) $data['description'] : null;
+        $this->translations = array_key_exists('translations', $data) && is_array($data['translations']) ? array_values($data['translations']) : null;
+        $this->capacity = array_key_exists('capacity', $data) && $data['capacity'] !== null && $data['capacity'] !== '' ? (int) $data['capacity'] : null;
+        $this->is_active = array_key_exists('is_active', $data) && $data['is_active'] !== null ? (bool) $data['is_active'] : null;
+
+        $mappedFields = [];
+        if ($this->name !== null) {
+            $mappedFields['name'] = $this->name;
+        }
+        if ($this->slug !== null) {
+            $mappedFields['slug'] = $this->slug;
+        }
+        if (array_key_exists('description', $data)) {
+            $mappedFields['description'] = $this->description;
+        }
+        if ($this->translations !== null) {
+            $mappedFields['translations'] = $this->translations;
+        }
+        if (array_key_exists('capacity', $data)) {
+            $mappedFields['capacity'] = $this->capacity;
+        }
+        if ($this->is_active !== null) {
+            $mappedFields['is_active'] = $this->is_active;
+        }
+
+        $this->mappedFields = $mappedFields;
+
+    }
+
     #[OA\Property(description: 'name', type: 'string', nullable: true)]
     public ?string $name;
     #[OA\Property(description: 'slug', type: 'string', nullable: true)]
@@ -54,34 +90,6 @@ readonly class VenueUpdateRequestDTO extends BaseRequestDTO
      */
     protected function map(array $data): void
     {
-        $this->name = array_key_exists('name', $data) && $data['name'] !== null ? (string) $data['name'] : null;
-        $this->slug = array_key_exists('slug', $data) && $data['slug'] !== null ? (string) $data['slug'] : null;
-        $this->description = array_key_exists('description', $data) && $data['description'] !== null && $data['description'] !== '' ? (string) $data['description'] : null;
-        $this->translations = array_key_exists('translations', $data) && is_array($data['translations']) ? array_values($data['translations']) : null;
-        $this->capacity = array_key_exists('capacity', $data) && $data['capacity'] !== null && $data['capacity'] !== '' ? (int) $data['capacity'] : null;
-        $this->is_active = array_key_exists('is_active', $data) && $data['is_active'] !== null ? (bool) $data['is_active'] : null;
-
-        $mappedFields = [];
-        if ($this->name !== null) {
-            $mappedFields['name'] = $this->name;
-        }
-        if ($this->slug !== null) {
-            $mappedFields['slug'] = $this->slug;
-        }
-        if (array_key_exists('description', $data)) {
-            $mappedFields['description'] = $this->description;
-        }
-        if ($this->translations !== null) {
-            $mappedFields['translations'] = $this->translations;
-        }
-        if (array_key_exists('capacity', $data)) {
-            $mappedFields['capacity'] = $this->capacity;
-        }
-        if ($this->is_active !== null) {
-            $mappedFields['is_active'] = $this->is_active;
-        }
-
-        $this->mappedFields = $mappedFields;
     }
 
     /**

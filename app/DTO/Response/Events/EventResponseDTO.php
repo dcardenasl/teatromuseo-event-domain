@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DTO\Response\Events;
 
+use App\Traits\DTO\NormalizesLocalizedPayload;
 use App\Traits\DTO\NormalizesResponseTimestamps;
 use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
 use OpenApi\Attributes as OA;
@@ -16,6 +17,7 @@ use OpenApi\Attributes as OA;
 final readonly class EventResponseDTO implements DataTransferObjectInterface
 {
     use NormalizesResponseTimestamps;
+    use NormalizesLocalizedPayload;
 
     public function __construct(
         #[OA\Property(description: 'Unique identifier', example: 1)]
@@ -32,10 +34,10 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
         public ?int $cover_file_id,
         #[OA\Property(description: 'gallery_file_ids', type: 'string', nullable: true)]
         public ?string $gallery_file_ids,
-        /** @var list<array{locale: string, fields: array<string, string>}> */
+        /** @var list<array<string, string>> */
         #[OA\Property(description: 'All stored localized content rows', type: 'array', items: new OA\Items(type: 'object'))]
         public array $translations,
-        /** @var array{locale: string, title?: string, description?: string} */
+        /** @var array<string, string> */
         #[OA\Property(description: 'Content resolved from Accept-Language with field-level fallback', type: 'object')]
         public array $localized,
         #[OA\Property(description: 'Public routing slug resolved for the request locale', type: 'string')]
@@ -62,6 +64,9 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public static function fromArray(array $data): static
     {
         return new static(
@@ -72,8 +77,8 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
             description: (string) ($data['description'] ?? ''),
             cover_file_id: isset($data['cover_file_id']) ? (int) $data['cover_file_id'] : null,
             gallery_file_ids: $data['gallery_file_ids'] ?? null,
-            translations: is_array($data['translations'] ?? null) ? $data['translations'] : [],
-            localized: is_array($data['localized'] ?? null) ? $data['localized'] : [],
+            translations: self::normalizeTranslationRows($data['translations'] ?? null),
+            localized: self::normalizeLocalized($data['localized'] ?? null),
             slug: (string) ($data['slug'] ?? ''),
             slugs: is_array($data['slugs'] ?? null) ? $data['slugs'] : [],
             start_time: isset($data['start_time']) ? (string) $data['start_time'] : null,

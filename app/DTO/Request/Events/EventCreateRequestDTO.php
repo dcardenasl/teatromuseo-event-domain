@@ -4,12 +4,33 @@ declare(strict_types=1);
 
 namespace App\DTO\Request\Events;
 
+use CodeIgniter\Validation\ValidationInterface;
 use dcardenasl\Ci4ApiCore\Dto\BaseRequestDTO;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'EventCreateRequest')]
 readonly class EventCreateRequestDTO extends BaseRequestDTO
 {
+    public function __construct(array $data, ?ValidationInterface $validation = null)
+    {
+        parent::__construct($data, $validation);
+
+        $this->uuid = (string) ($data['uuid'] ?? '');
+        $this->title = (string) ($data['title'] ?? '');
+        $this->event_type = (string) ($data['event_type'] ?? 'function');
+        $this->description = (string) ($data['description'] ?? '');
+        $this->cover_file_id = isset($data['cover_file_id']) ? (int) $data['cover_file_id'] : null;
+        $this->gallery_file_ids = $data['gallery_file_ids'] ?? null;
+        $this->translations = is_array($data['translations'] ?? null) ? array_values($data['translations']) : [];
+        $this->start_time = isset($data['start_time']) ? (string) $data['start_time'] : null;
+        $this->end_time = isset($data['end_time']) ? (string) $data['end_time'] : null;
+        $this->venue = isset($data['venue']) ? (string) $data['venue'] : null;
+        $this->capacity = isset($data['capacity']) ? (int) $data['capacity'] : null;
+        $this->available_spots = isset($data['available_spots']) ? (int) $data['available_spots'] : null;
+        $this->status = (string) ($data['status'] ?? '');
+
+    }
+
     #[OA\Property(description: 'uuid', type: 'string')]
     public string $uuid;
     #[OA\Property(description: 'title', type: 'string')]
@@ -59,19 +80,6 @@ readonly class EventCreateRequestDTO extends BaseRequestDTO
 
     protected function map(array $data): void
     {
-        $this->uuid = (string) ($data['uuid'] ?? '');
-        $this->title = (string) ($data['title'] ?? '');
-        $this->event_type = (string) ($data['event_type'] ?? 'function');
-        $this->description = (string) ($data['description'] ?? '');
-        $this->cover_file_id = isset($data['cover_file_id']) ? (int) $data['cover_file_id'] : null;
-        $this->gallery_file_ids = $data['gallery_file_ids'] ?? null;
-        $this->translations = is_array($data['translations'] ?? null) ? array_values($data['translations']) : [];
-        $this->start_time = isset($data['start_time']) ? (string) $data['start_time'] : null;
-        $this->end_time = isset($data['end_time']) ? (string) $data['end_time'] : null;
-        $this->venue = isset($data['venue']) ? (string) $data['venue'] : null;
-        $this->capacity = isset($data['capacity']) ? (int) $data['capacity'] : null;
-        $this->available_spots = isset($data['available_spots']) ? (int) $data['available_spots'] : null;
-        $this->status = (string) ($data['status'] ?? '');
     }
 
     public function toArray(): array

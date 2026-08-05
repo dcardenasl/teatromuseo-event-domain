@@ -4,12 +4,26 @@ declare(strict_types=1);
 
 namespace App\DTO\Request\Events;
 
+use CodeIgniter\Validation\ValidationInterface;
 use dcardenasl\Ci4ApiCore\Dto\BaseRequestDTO;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'VenueCreateRequest')]
 readonly class VenueCreateRequestDTO extends BaseRequestDTO
 {
+    public function __construct(array $data, ?ValidationInterface $validation = null)
+    {
+        parent::__construct($data, $validation);
+
+        $this->name = (string) ($data['name'] ?? '');
+        $this->slug = (string) ($data['slug'] ?? '');
+        $this->description = $data['description'] ?? null;
+        $this->translations = is_array($data['translations'] ?? null) ? array_values($data['translations']) : [];
+        $this->capacity = isset($data['capacity']) ? (int) $data['capacity'] : null;
+        $this->is_active = (bool) ($data['is_active'] ?? false);
+
+    }
+
     #[OA\Property(description: 'name', type: 'string')]
     public string $name;
     #[OA\Property(description: 'slug', type: 'string')]
@@ -44,12 +58,6 @@ readonly class VenueCreateRequestDTO extends BaseRequestDTO
      */
     protected function map(array $data): void
     {
-        $this->name = (string) ($data['name'] ?? '');
-        $this->slug = (string) ($data['slug'] ?? '');
-        $this->description = $data['description'] ?? null;
-        $this->translations = is_array($data['translations'] ?? null) ? array_values($data['translations']) : [];
-        $this->capacity = isset($data['capacity']) ? (int) $data['capacity'] : null;
-        $this->is_active = (bool) ($data['is_active'] ?? false);
     }
 
     /**

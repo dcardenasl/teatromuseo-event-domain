@@ -4,12 +4,27 @@ declare(strict_types=1);
 
 namespace App\DTO\Request\Events;
 
+use CodeIgniter\Validation\ValidationInterface;
 use dcardenasl\Ci4ApiCore\Dto\BaseRequestDTO;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'OccurrenceCreateRequest')]
 readonly class OccurrenceCreateRequestDTO extends BaseRequestDTO
 {
+    public function __construct(array $data, ?ValidationInterface $validation = null)
+    {
+        parent::__construct($data, $validation);
+
+        $this->event_id = (int) ($data['event_id'] ?? 0);
+        $this->venue_id = isset($data['venue_id']) ? (int) $data['venue_id'] : null;
+        $this->start_time = (string) ($data['start_time'] ?? '');
+        $this->end_time = (string) ($data['end_time'] ?? '');
+        $this->status = (string) ($data['status'] ?? '');
+        $this->capacity = (int) ($data['capacity'] ?? 0);
+        $this->available_spots = (int) ($data['available_spots'] ?? 0);
+
+    }
+
     #[OA\Property(description: 'event_id', type: 'integer')]
     public int $event_id;
     #[OA\Property(description: 'venue_id', type: 'integer', nullable: true)]
@@ -46,13 +61,6 @@ readonly class OccurrenceCreateRequestDTO extends BaseRequestDTO
      */
     protected function map(array $data): void
     {
-        $this->event_id = (int) ($data['event_id'] ?? 0);
-        $this->venue_id = isset($data['venue_id']) ? (int) $data['venue_id'] : null;
-        $this->start_time = (string) ($data['start_time'] ?? '');
-        $this->end_time = (string) ($data['end_time'] ?? '');
-        $this->status = (string) ($data['status'] ?? '');
-        $this->capacity = (int) ($data['capacity'] ?? 0);
-        $this->available_spots = (int) ($data['available_spots'] ?? 0);
     }
 
     /**

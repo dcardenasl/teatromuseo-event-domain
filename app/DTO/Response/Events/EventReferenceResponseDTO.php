@@ -17,6 +17,9 @@ final readonly class EventReferenceResponseDTO implements DataTransferObjectInte
 {
     use NormalizesResponseTimestamps;
 
+    /**
+     * @param array<string, mixed>|null $metadata
+     */
     public function __construct(
         #[OA\Property(description: 'Unique identifier', example: 1)]
         public int $id,

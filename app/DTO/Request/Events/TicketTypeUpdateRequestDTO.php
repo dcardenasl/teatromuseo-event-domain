@@ -4,12 +4,60 @@ declare(strict_types=1);
 
 namespace App\DTO\Request\Events;
 
+use CodeIgniter\Validation\ValidationInterface;
 use dcardenasl\Ci4ApiCore\Dto\BaseRequestDTO;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'TicketTypeUpdateRequest')]
 readonly class TicketTypeUpdateRequestDTO extends BaseRequestDTO
 {
+    public function __construct(array $data, ?ValidationInterface $validation = null)
+    {
+        parent::__construct($data, $validation);
+
+        $this->event_id = array_key_exists('event_id', $data) && $data['event_id'] !== null && $data['event_id'] !== '' ? (int) $data['event_id'] : null;
+        $this->occurrence_id = array_key_exists('occurrence_id', $data) && $data['occurrence_id'] !== null && $data['occurrence_id'] !== '' ? (int) $data['occurrence_id'] : null;
+        $this->name = array_key_exists('name', $data) && $data['name'] !== null ? (string) $data['name'] : null;
+        $this->translations = array_key_exists('translations', $data) && is_array($data['translations']) ? array_values($data['translations']) : null;
+        $this->price = array_key_exists('price', $data) && $data['price'] !== null && $data['price'] !== '' ? (float) $data['price'] : null;
+        $this->capacity = array_key_exists('capacity', $data) && $data['capacity'] !== null && $data['capacity'] !== '' ? (int) $data['capacity'] : null;
+        $this->available_spots = array_key_exists('available_spots', $data) && $data['available_spots'] !== null && $data['available_spots'] !== '' ? (int) $data['available_spots'] : null;
+        $this->sales_start = array_key_exists('sales_start', $data) && $data['sales_start'] !== null ? (string) $data['sales_start'] : null;
+        $this->sales_end = array_key_exists('sales_end', $data) && $data['sales_end'] !== null ? (string) $data['sales_end'] : null;
+
+        $mappedFields = [];
+        if ($this->event_id !== null) {
+            $mappedFields['event_id'] = $this->event_id;
+        }
+        if (array_key_exists('occurrence_id', $data)) {
+            $mappedFields['occurrence_id'] = $this->occurrence_id;
+        }
+        if ($this->name !== null) {
+            $mappedFields['name'] = $this->name;
+        }
+        if ($this->translations !== null) {
+            $mappedFields['translations'] = $this->translations;
+        }
+        if ($this->price !== null) {
+            $mappedFields['price'] = $this->price;
+        }
+        if ($this->capacity !== null) {
+            $mappedFields['capacity'] = $this->capacity;
+        }
+        if ($this->available_spots !== null) {
+            $mappedFields['available_spots'] = $this->available_spots;
+        }
+        if ($this->sales_start !== null) {
+            $mappedFields['sales_start'] = $this->sales_start;
+        }
+        if ($this->sales_end !== null) {
+            $mappedFields['sales_end'] = $this->sales_end;
+        }
+
+        $this->mappedFields = $mappedFields;
+
+    }
+
     #[OA\Property(description: 'event_id', type: 'integer', nullable: true)]
     public ?int $event_id;
     #[OA\Property(description: 'Concrete scheduled occurrence', type: 'integer', nullable: true)]
@@ -59,46 +107,6 @@ readonly class TicketTypeUpdateRequestDTO extends BaseRequestDTO
      */
     protected function map(array $data): void
     {
-        $this->event_id = array_key_exists('event_id', $data) && $data['event_id'] !== null && $data['event_id'] !== '' ? (int) $data['event_id'] : null;
-        $this->occurrence_id = array_key_exists('occurrence_id', $data) && $data['occurrence_id'] !== null && $data['occurrence_id'] !== '' ? (int) $data['occurrence_id'] : null;
-        $this->name = array_key_exists('name', $data) && $data['name'] !== null ? (string) $data['name'] : null;
-        $this->translations = array_key_exists('translations', $data) && is_array($data['translations']) ? array_values($data['translations']) : null;
-        $this->price = array_key_exists('price', $data) && $data['price'] !== null && $data['price'] !== '' ? (float) $data['price'] : null;
-        $this->capacity = array_key_exists('capacity', $data) && $data['capacity'] !== null && $data['capacity'] !== '' ? (int) $data['capacity'] : null;
-        $this->available_spots = array_key_exists('available_spots', $data) && $data['available_spots'] !== null && $data['available_spots'] !== '' ? (int) $data['available_spots'] : null;
-        $this->sales_start = array_key_exists('sales_start', $data) && $data['sales_start'] !== null ? (string) $data['sales_start'] : null;
-        $this->sales_end = array_key_exists('sales_end', $data) && $data['sales_end'] !== null ? (string) $data['sales_end'] : null;
-
-        $mappedFields = [];
-        if ($this->event_id !== null) {
-            $mappedFields['event_id'] = $this->event_id;
-        }
-        if (array_key_exists('occurrence_id', $data)) {
-            $mappedFields['occurrence_id'] = $this->occurrence_id;
-        }
-        if ($this->name !== null) {
-            $mappedFields['name'] = $this->name;
-        }
-        if ($this->translations !== null) {
-            $mappedFields['translations'] = $this->translations;
-        }
-        if ($this->price !== null) {
-            $mappedFields['price'] = $this->price;
-        }
-        if ($this->capacity !== null) {
-            $mappedFields['capacity'] = $this->capacity;
-        }
-        if ($this->available_spots !== null) {
-            $mappedFields['available_spots'] = $this->available_spots;
-        }
-        if ($this->sales_start !== null) {
-            $mappedFields['sales_start'] = $this->sales_start;
-        }
-        if ($this->sales_end !== null) {
-            $mappedFields['sales_end'] = $this->sales_end;
-        }
-
-        $this->mappedFields = $mappedFields;
     }
 
     public function toArray(): array

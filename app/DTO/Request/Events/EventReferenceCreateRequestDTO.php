@@ -4,12 +4,26 @@ declare(strict_types=1);
 
 namespace App\DTO\Request\Events;
 
+use CodeIgniter\Validation\ValidationInterface;
 use dcardenasl\Ci4ApiCore\Dto\BaseRequestDTO;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'EventReferenceCreateRequest')]
 readonly class EventReferenceCreateRequestDTO extends BaseRequestDTO
 {
+    public function __construct(array $data, ?ValidationInterface $validation = null)
+    {
+        parent::__construct($data, $validation);
+
+        $this->event_id = (int) ($data['event_id'] ?? 0);
+        $this->source_system = (string) ($data['source_system'] ?? '');
+        $this->source_type = (string) ($data['source_type'] ?? '');
+        $this->source_id = (string) ($data['source_id'] ?? '');
+        $this->relation = (string) ($data['relation'] ?? '');
+        $this->metadata = isset($data['metadata']) ? (array) $data['metadata'] : null;
+
+    }
+
     #[OA\Property(description: 'event_id', type: 'integer')]
     public int $event_id;
     #[OA\Property(description: 'source_system', type: 'string')]
@@ -20,6 +34,7 @@ readonly class EventReferenceCreateRequestDTO extends BaseRequestDTO
     public string $source_id;
     #[OA\Property(description: 'relation', type: 'string')]
     public string $relation;
+    /** @var array<string, mixed>|null */
     #[OA\Property(description: 'metadata', type: 'object', nullable: true)]
     public ?array $metadata;
 
@@ -43,12 +58,6 @@ readonly class EventReferenceCreateRequestDTO extends BaseRequestDTO
      */
     protected function map(array $data): void
     {
-        $this->event_id = (int) ($data['event_id'] ?? 0);
-        $this->source_system = (string) ($data['source_system'] ?? '');
-        $this->source_type = (string) ($data['source_type'] ?? '');
-        $this->source_id = (string) ($data['source_id'] ?? '');
-        $this->relation = (string) ($data['relation'] ?? '');
-        $this->metadata = isset($data['metadata']) ? (array) $data['metadata'] : null;
     }
 
     /**

@@ -4,12 +4,48 @@ declare(strict_types=1);
 
 namespace App\DTO\Request\Events;
 
+use CodeIgniter\Validation\ValidationInterface;
 use dcardenasl\Ci4ApiCore\Dto\BaseRequestDTO;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'EventReferenceUpdateRequest')]
 readonly class EventReferenceUpdateRequestDTO extends BaseRequestDTO
 {
+    public function __construct(array $data, ?ValidationInterface $validation = null)
+    {
+        parent::__construct($data, $validation);
+
+        $this->event_id = array_key_exists('event_id', $data) && $data['event_id'] !== null && $data['event_id'] !== '' ? (int) $data['event_id'] : null;
+        $this->source_system = array_key_exists('source_system', $data) && $data['source_system'] !== null ? (string) $data['source_system'] : null;
+        $this->source_type = array_key_exists('source_type', $data) && $data['source_type'] !== null ? (string) $data['source_type'] : null;
+        $this->source_id = array_key_exists('source_id', $data) && $data['source_id'] !== null ? (string) $data['source_id'] : null;
+        $this->relation = array_key_exists('relation', $data) && $data['relation'] !== null ? (string) $data['relation'] : null;
+        $this->metadata = array_key_exists('metadata', $data) && $data['metadata'] !== null ? (array) $data['metadata'] : null;
+
+        $mappedFields = [];
+        if ($this->event_id !== null) {
+            $mappedFields['event_id'] = $this->event_id;
+        }
+        if ($this->source_system !== null) {
+            $mappedFields['source_system'] = $this->source_system;
+        }
+        if ($this->source_type !== null) {
+            $mappedFields['source_type'] = $this->source_type;
+        }
+        if ($this->source_id !== null) {
+            $mappedFields['source_id'] = $this->source_id;
+        }
+        if ($this->relation !== null) {
+            $mappedFields['relation'] = $this->relation;
+        }
+        if (array_key_exists('metadata', $data)) {
+            $mappedFields['metadata'] = $this->metadata;
+        }
+
+        $this->mappedFields = $mappedFields;
+
+    }
+
     #[OA\Property(description: 'event_id', type: 'integer', nullable: true)]
     public ?int $event_id;
     #[OA\Property(description: 'source_system', type: 'string', nullable: true)]
@@ -20,6 +56,7 @@ readonly class EventReferenceUpdateRequestDTO extends BaseRequestDTO
     public ?string $source_id;
     #[OA\Property(description: 'relation', type: 'string', nullable: true)]
     public ?string $relation;
+    /** @var array<string, mixed>|null */
     #[OA\Property(description: 'metadata', type: 'object', nullable: true)]
     public ?array $metadata;
 
@@ -53,34 +90,6 @@ readonly class EventReferenceUpdateRequestDTO extends BaseRequestDTO
      */
     protected function map(array $data): void
     {
-        $this->event_id = array_key_exists('event_id', $data) && $data['event_id'] !== null && $data['event_id'] !== '' ? (int) $data['event_id'] : null;
-        $this->source_system = array_key_exists('source_system', $data) && $data['source_system'] !== null ? (string) $data['source_system'] : null;
-        $this->source_type = array_key_exists('source_type', $data) && $data['source_type'] !== null ? (string) $data['source_type'] : null;
-        $this->source_id = array_key_exists('source_id', $data) && $data['source_id'] !== null ? (string) $data['source_id'] : null;
-        $this->relation = array_key_exists('relation', $data) && $data['relation'] !== null ? (string) $data['relation'] : null;
-        $this->metadata = array_key_exists('metadata', $data) && $data['metadata'] !== null ? (array) $data['metadata'] : null;
-
-        $mappedFields = [];
-        if ($this->event_id !== null) {
-            $mappedFields['event_id'] = $this->event_id;
-        }
-        if ($this->source_system !== null) {
-            $mappedFields['source_system'] = $this->source_system;
-        }
-        if ($this->source_type !== null) {
-            $mappedFields['source_type'] = $this->source_type;
-        }
-        if ($this->source_id !== null) {
-            $mappedFields['source_id'] = $this->source_id;
-        }
-        if ($this->relation !== null) {
-            $mappedFields['relation'] = $this->relation;
-        }
-        if (array_key_exists('metadata', $data)) {
-            $mappedFields['metadata'] = $this->metadata;
-        }
-
-        $this->mappedFields = $mappedFields;
     }
 
     /**

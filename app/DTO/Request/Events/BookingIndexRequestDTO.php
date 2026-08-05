@@ -4,12 +4,24 @@ declare(strict_types=1);
 
 namespace App\DTO\Request\Events;
 
+use CodeIgniter\Validation\ValidationInterface;
 use dcardenasl\Ci4ApiCore\Dto\BaseRequestDTO;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'BookingIndexRequest')]
 readonly class BookingIndexRequestDTO extends BaseRequestDTO
 {
+    public function __construct(array $data, ?ValidationInterface $validation = null)
+    {
+        parent::__construct($data, $validation);
+
+        $this->page = isset($data['page']) ? (int) $data['page'] : 1;
+        $this->per_page = isset($data['per_page']) ? (int) $data['per_page'] : 20;
+        $this->search = $data['search'] ?? null;
+        $this->sort = (string) ($data['sort'] ?? '');
+
+    }
+
     public int $page;
     public int $per_page;
     public ?string $search;
@@ -27,10 +39,6 @@ readonly class BookingIndexRequestDTO extends BaseRequestDTO
 
     protected function map(array $data): void
     {
-        $this->page = isset($data['page']) ? (int) $data['page'] : 1;
-        $this->per_page = isset($data['per_page']) ? (int) $data['per_page'] : 20;
-        $this->search = $data['search'] ?? null;
-        $this->sort = (string) ($data['sort'] ?? '');
     }
 
     public function toArray(): array

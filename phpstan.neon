@@ -9,6 +9,9 @@ parameters:
         - app/Controllers
         - app/Services
         - app/Models
+        - app/DTO
+        - app/Repositories
+        - app/Commands
         - app/Libraries
         - app/Entities
         - app/Filters
@@ -25,13 +28,10 @@ parameters:
         - tests/_support (?)
         - app/Config
         - app/Views
-        - app/Commands
     reportUnmatchedIgnoredErrors: false
     treatPhpDocTypesAsCertain: false
-    # ignoreErrors limited to CI4 framework-dynamic patterns (not real bugs).
-    # Tech-debt-style errors (missingType.iterableValue, real argument.type
-    # mismatches) are captured in phpstan-baseline.neon below and shrunk over
-    # time. New errors of those kinds will fail CI.
+    # ignoreErrors is limited to CI4 framework-dynamic patterns. Real type
+    # errors must be fixed in code and are never added to the baseline.
     ignoreErrors:
         # CI4 helper functions and framework constants are stubbed in
         # phpstan-bootstrap.php. ENVIRONMENT is deliberately left undefined there

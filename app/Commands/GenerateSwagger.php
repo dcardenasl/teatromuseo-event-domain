@@ -6,6 +6,7 @@ namespace App\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
+use OpenApi\Annotations\OpenApi;
 
 class GenerateSwagger extends BaseCommand
 {
@@ -14,7 +15,7 @@ class GenerateSwagger extends BaseCommand
     protected $description = 'Generate OpenAPI/Swagger documentation';
     protected $usage       = 'swagger:generate';
 
-    public function run(array $params)
+    public function run(array $params): int
     {
         CLI::write('Generating OpenAPI documentation...', 'yellow');
 
@@ -31,14 +32,23 @@ class GenerateSwagger extends BaseCommand
                     $appPath . 'DTO/',
                 ]);
 
+            if (! $openapi instanceof OpenApi) {
+                throw new \RuntimeException('OpenAPI generator returned no document.');
+            }
+
             // Write to file
-            file_put_contents($outputPath, $openapi->toJson());
+            if (file_put_contents($outputPath, $openapi->toJson()) === false) {
+                throw new \RuntimeException('Unable to write the generated OpenAPI document.');
+            }
 
             // Calculate statistics (components properties may be UNDEFINED sentinel when empty)
-            $paths = $openapi->paths ?? [];
-            $schemas = is_array($openapi->components->schemas ?? null) ? $openapi->components->schemas : [];
-            $responses = is_array($openapi->components->responses ?? null) ? $openapi->components->responses : [];
-            $requestBodies = is_array($openapi->components->requestBodies ?? null) ? $openapi->components->requestBodies : [];
+            $document = get_object_vars($openapi);
+            $paths = is_array($document['paths'] ?? null) ? $document['paths'] : [];
+            $components = $document['components'] ?? null;
+            $componentData = is_object($components) ? get_object_vars($components) : [];
+            $schemas = is_array($componentData['schemas'] ?? null) ? $componentData['schemas'] : [];
+            $responses = is_array($componentData['responses'] ?? null) ? $componentData['responses'] : [];
+            $requestBodies = is_array($componentData['requestBodies'] ?? null) ? $componentData['requestBodies'] : [];
             $endpointCount = count($paths);
             $schemaCount = count($schemas);
             $responseCount = count($responses);
@@ -54,12 +64,12 @@ class GenerateSwagger extends BaseCommand
             CLI::write('  Request Bodies: ' . $requestBodyCount, 'white');
             CLI::write('', '');
             CLI::write('You can view it at: http://localhost:8193/swagger.json', 'cyan');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             CLI::error('Failed to generate OpenAPI documentation');
             CLI::error($e->getMessage());
-            return EXIT_ERROR;
+            return 1;
         }
 
-        return EXIT_SUCCESS;
+        return 0;
     }
 }

@@ -4,12 +4,52 @@ declare(strict_types=1);
 
 namespace App\DTO\Request\Events;
 
+use CodeIgniter\Validation\ValidationInterface;
 use dcardenasl\Ci4ApiCore\Dto\BaseRequestDTO;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'OccurrenceUpdateRequest')]
 readonly class OccurrenceUpdateRequestDTO extends BaseRequestDTO
 {
+    public function __construct(array $data, ?ValidationInterface $validation = null)
+    {
+        parent::__construct($data, $validation);
+
+        $this->event_id = array_key_exists('event_id', $data) && $data['event_id'] !== null && $data['event_id'] !== '' ? (int) $data['event_id'] : null;
+        $this->venue_id = array_key_exists('venue_id', $data) && $data['venue_id'] !== null && $data['venue_id'] !== '' ? (int) $data['venue_id'] : null;
+        $this->start_time = array_key_exists('start_time', $data) && $data['start_time'] !== null ? (string) $data['start_time'] : null;
+        $this->end_time = array_key_exists('end_time', $data) && $data['end_time'] !== null ? (string) $data['end_time'] : null;
+        $this->status = array_key_exists('status', $data) && $data['status'] !== null ? (string) $data['status'] : null;
+        $this->capacity = array_key_exists('capacity', $data) && $data['capacity'] !== null && $data['capacity'] !== '' ? (int) $data['capacity'] : null;
+        $this->available_spots = array_key_exists('available_spots', $data) && $data['available_spots'] !== null && $data['available_spots'] !== '' ? (int) $data['available_spots'] : null;
+
+        $mappedFields = [];
+        if ($this->event_id !== null) {
+            $mappedFields['event_id'] = $this->event_id;
+        }
+        if (array_key_exists('venue_id', $data)) {
+            $mappedFields['venue_id'] = $this->venue_id;
+        }
+        if ($this->start_time !== null) {
+            $mappedFields['start_time'] = $this->start_time;
+        }
+        if ($this->end_time !== null) {
+            $mappedFields['end_time'] = $this->end_time;
+        }
+        if ($this->status !== null) {
+            $mappedFields['status'] = $this->status;
+        }
+        if ($this->capacity !== null) {
+            $mappedFields['capacity'] = $this->capacity;
+        }
+        if ($this->available_spots !== null) {
+            $mappedFields['available_spots'] = $this->available_spots;
+        }
+
+        $this->mappedFields = $mappedFields;
+
+    }
+
     #[OA\Property(description: 'event_id', type: 'integer', nullable: true)]
     public ?int $event_id;
     #[OA\Property(description: 'venue_id', type: 'integer', nullable: true)]
@@ -57,38 +97,6 @@ readonly class OccurrenceUpdateRequestDTO extends BaseRequestDTO
      */
     protected function map(array $data): void
     {
-        $this->event_id = array_key_exists('event_id', $data) && $data['event_id'] !== null && $data['event_id'] !== '' ? (int) $data['event_id'] : null;
-        $this->venue_id = array_key_exists('venue_id', $data) && $data['venue_id'] !== null && $data['venue_id'] !== '' ? (int) $data['venue_id'] : null;
-        $this->start_time = array_key_exists('start_time', $data) && $data['start_time'] !== null ? (string) $data['start_time'] : null;
-        $this->end_time = array_key_exists('end_time', $data) && $data['end_time'] !== null ? (string) $data['end_time'] : null;
-        $this->status = array_key_exists('status', $data) && $data['status'] !== null ? (string) $data['status'] : null;
-        $this->capacity = array_key_exists('capacity', $data) && $data['capacity'] !== null && $data['capacity'] !== '' ? (int) $data['capacity'] : null;
-        $this->available_spots = array_key_exists('available_spots', $data) && $data['available_spots'] !== null && $data['available_spots'] !== '' ? (int) $data['available_spots'] : null;
-
-        $mappedFields = [];
-        if ($this->event_id !== null) {
-            $mappedFields['event_id'] = $this->event_id;
-        }
-        if (array_key_exists('venue_id', $data)) {
-            $mappedFields['venue_id'] = $this->venue_id;
-        }
-        if ($this->start_time !== null) {
-            $mappedFields['start_time'] = $this->start_time;
-        }
-        if ($this->end_time !== null) {
-            $mappedFields['end_time'] = $this->end_time;
-        }
-        if ($this->status !== null) {
-            $mappedFields['status'] = $this->status;
-        }
-        if ($this->capacity !== null) {
-            $mappedFields['capacity'] = $this->capacity;
-        }
-        if ($this->available_spots !== null) {
-            $mappedFields['available_spots'] = $this->available_spots;
-        }
-
-        $this->mappedFields = $mappedFields;
     }
 
     /**

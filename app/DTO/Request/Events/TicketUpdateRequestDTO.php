@@ -4,12 +4,56 @@ declare(strict_types=1);
 
 namespace App\DTO\Request\Events;
 
+use CodeIgniter\Validation\ValidationInterface;
 use dcardenasl\Ci4ApiCore\Dto\BaseRequestDTO;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'TicketUpdateRequest')]
 readonly class TicketUpdateRequestDTO extends BaseRequestDTO
 {
+    public function __construct(array $data, ?ValidationInterface $validation = null)
+    {
+        parent::__construct($data, $validation);
+
+        $this->uuid = array_key_exists('uuid', $data) && $data['uuid'] !== null ? (string) $data['uuid'] : null;
+        $this->booking_id = array_key_exists('booking_id', $data) && $data['booking_id'] !== null && $data['booking_id'] !== '' ? (int) $data['booking_id'] : null;
+        $this->ticket_type_id = array_key_exists('ticket_type_id', $data) && $data['ticket_type_id'] !== null && $data['ticket_type_id'] !== '' ? (int) $data['ticket_type_id'] : null;
+        $this->holder_name = array_key_exists('holder_name', $data) && $data['holder_name'] !== null ? (string) $data['holder_name'] : null;
+        $this->holder_email = array_key_exists('holder_email', $data) && $data['holder_email'] !== null ? (string) $data['holder_email'] : null;
+        $this->qr_code_token = array_key_exists('qr_code_token', $data) && $data['qr_code_token'] !== null ? (string) $data['qr_code_token'] : null;
+        $this->status = array_key_exists('status', $data) && $data['status'] !== null ? (string) $data['status'] : null;
+        $this->checked_in_at = array_key_exists('checked_in_at', $data) && $data['checked_in_at'] !== null ? (string) $data['checked_in_at'] : null;
+
+        $mappedFields = [];
+        if ($this->uuid !== null) {
+            $mappedFields['uuid'] = $this->uuid;
+        }
+        if ($this->booking_id !== null) {
+            $mappedFields['booking_id'] = $this->booking_id;
+        }
+        if ($this->ticket_type_id !== null) {
+            $mappedFields['ticket_type_id'] = $this->ticket_type_id;
+        }
+        if ($this->holder_name !== null) {
+            $mappedFields['holder_name'] = $this->holder_name;
+        }
+        if ($this->holder_email !== null) {
+            $mappedFields['holder_email'] = $this->holder_email;
+        }
+        if ($this->qr_code_token !== null) {
+            $mappedFields['qr_code_token'] = $this->qr_code_token;
+        }
+        if ($this->status !== null) {
+            $mappedFields['status'] = $this->status;
+        }
+        if (array_key_exists('checked_in_at', $data)) {
+            $mappedFields['checked_in_at'] = $this->checked_in_at;
+        }
+
+        $this->mappedFields = $mappedFields;
+
+    }
+
     #[OA\Property(description: 'uuid', type: 'string', nullable: true)]
     public ?string $uuid;
     #[OA\Property(description: 'booking_id', type: 'integer', nullable: true)]
@@ -55,42 +99,6 @@ readonly class TicketUpdateRequestDTO extends BaseRequestDTO
      */
     protected function map(array $data): void
     {
-        $this->uuid = array_key_exists('uuid', $data) && $data['uuid'] !== null ? (string) $data['uuid'] : null;
-        $this->booking_id = array_key_exists('booking_id', $data) && $data['booking_id'] !== null && $data['booking_id'] !== '' ? (int) $data['booking_id'] : null;
-        $this->ticket_type_id = array_key_exists('ticket_type_id', $data) && $data['ticket_type_id'] !== null && $data['ticket_type_id'] !== '' ? (int) $data['ticket_type_id'] : null;
-        $this->holder_name = array_key_exists('holder_name', $data) && $data['holder_name'] !== null ? (string) $data['holder_name'] : null;
-        $this->holder_email = array_key_exists('holder_email', $data) && $data['holder_email'] !== null ? (string) $data['holder_email'] : null;
-        $this->qr_code_token = array_key_exists('qr_code_token', $data) && $data['qr_code_token'] !== null ? (string) $data['qr_code_token'] : null;
-        $this->status = array_key_exists('status', $data) && $data['status'] !== null ? (string) $data['status'] : null;
-        $this->checked_in_at = array_key_exists('checked_in_at', $data) && $data['checked_in_at'] !== null ? (string) $data['checked_in_at'] : null;
-
-        $mappedFields = [];
-        if ($this->uuid !== null) {
-            $mappedFields['uuid'] = $this->uuid;
-        }
-        if ($this->booking_id !== null) {
-            $mappedFields['booking_id'] = $this->booking_id;
-        }
-        if ($this->ticket_type_id !== null) {
-            $mappedFields['ticket_type_id'] = $this->ticket_type_id;
-        }
-        if ($this->holder_name !== null) {
-            $mappedFields['holder_name'] = $this->holder_name;
-        }
-        if ($this->holder_email !== null) {
-            $mappedFields['holder_email'] = $this->holder_email;
-        }
-        if ($this->qr_code_token !== null) {
-            $mappedFields['qr_code_token'] = $this->qr_code_token;
-        }
-        if ($this->status !== null) {
-            $mappedFields['status'] = $this->status;
-        }
-        if (array_key_exists('checked_in_at', $data)) {
-            $mappedFields['checked_in_at'] = $this->checked_in_at;
-        }
-
-        $this->mappedFields = $mappedFields;
     }
 
     public function toArray(): array
