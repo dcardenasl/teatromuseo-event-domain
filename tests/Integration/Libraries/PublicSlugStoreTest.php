@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Libraries;
 
-use App\Libraries\Localization\PublicSlugStore;
-use App\Libraries\Localization\RequestLocaleResolver;
-use App\Libraries\Localization\SlugGenerator;
 use App\Models\EventPublicSlugModel;
 use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\DatabaseTestTrait;
+use dcardenasl\Ci4ApiCore\Localization\PublicSlugStore;
+use dcardenasl\Ci4ApiCore\Localization\RequestLocaleResolver;
+use dcardenasl\Ci4ApiCore\Localization\SlugGenerator;
 
 /**
  * @internal

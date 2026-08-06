@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Libraries;
 
-use App\Libraries\Localization\LocalizedTranslationStore;
 use App\Models\EventTranslationModel;
 use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\Test\CIUnitTestCase;
 use dcardenasl\Ci4ApiCore\Exceptions\BadRequestException;
+use dcardenasl\Ci4ApiCore\Localization\LocalizedTranslationStore;
+use dcardenasl\Ci4ApiCore\Localization\RequestLocaleResolver;
 
 /**
  * @internal
@@ -20,7 +21,13 @@ final class LocalizedTranslationStoreTest extends CIUnitTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->store = new LocalizedTranslationStore(new EventTranslationModel());
+        // No request: the resolver yields no preferred locale, so resolve()
+        // falls back to Config\Localization::$legacyFallbackLocale.
+        $this->store = new LocalizedTranslationStore(
+            new EventTranslationModel(),
+            new RequestLocaleResolver(null),
+            config('Localization'),
+        );
     }
 
     public function testNormalizesLocaleKeyedAndListPayloads(): void
@@ -71,7 +78,11 @@ final class LocalizedTranslationStoreTest extends CIUnitTestCase
         $request = $this->createMock(IncomingRequest::class);
         $request->method('getHeaderLine')->with('Accept-Language')->willReturn('en');
 
-        $store = new LocalizedTranslationStore(new EventTranslationModel(), $request);
+        $store = new LocalizedTranslationStore(
+            new EventTranslationModel(),
+            new RequestLocaleResolver($request),
+            config('Localization'),
+        );
 
         $resolved = $store->resolve('event', [
             ['locale' => 'es', 'fields' => ['title' => 'Festival de invierno', 'description' => 'Descripción']],

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Database\Migrations;
 
-use App\Libraries\Localization\SlugGenerator;
 use CodeIgniter\Database\Migration;
+use dcardenasl\Ci4ApiCore\Localization\SlugGenerator;
 
 /** Rewrites event-type slugs produced by the old iconv-only fallback. */
 final class RepairEventTypeSlugFormat extends Migration

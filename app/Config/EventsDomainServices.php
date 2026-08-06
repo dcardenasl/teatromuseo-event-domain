@@ -6,34 +6,49 @@ namespace Config;
 
 trait EventsDomainServices
 {
-    public static function localizedTranslationStore(bool $getShared = true): \App\Libraries\Localization\LocalizedTranslationStore
+    /**
+     * Shared per-request locale resolver.
+     *
+     * Both localization stores take the same instance so the Accept-Language /
+     * locale header is parsed once per service graph.
+     */
+    public static function requestLocaleResolver(bool $getShared = true): \dcardenasl\Ci4ApiCore\Localization\RequestLocaleResolver
+    {
+        if ($getShared) {
+            return static::getSharedInstance('requestLocaleResolver');
+        }
+
+        $request = \Config\Services::request(false);
+
+        return new \dcardenasl\Ci4ApiCore\Localization\RequestLocaleResolver(
+            $request instanceof \CodeIgniter\HTTP\IncomingRequest ? $request : null
+        );
+    }
+
+    public static function localizedTranslationStore(bool $getShared = true): \dcardenasl\Ci4ApiCore\Localization\LocalizedTranslationStore
     {
         if ($getShared) {
             return static::getSharedInstance('localizedTranslationStore');
         }
 
-        $request = \Config\Services::request(false);
-
-        return new \App\Libraries\Localization\LocalizedTranslationStore(
+        return new \dcardenasl\Ci4ApiCore\Localization\LocalizedTranslationStore(
             new \App\Models\EventTranslationModel(),
-            $request instanceof \CodeIgniter\HTTP\IncomingRequest ? $request : null
+            static::requestLocaleResolver(),
+            config('Localization'),
         );
     }
 
-    public static function publicSlugStore(bool $getShared = true): \App\Libraries\Localization\PublicSlugStore
+    public static function publicSlugStore(bool $getShared = true): \dcardenasl\Ci4ApiCore\Localization\PublicSlugStore
     {
         if ($getShared) {
             return static::getSharedInstance('publicSlugStore');
         }
 
-        $request = \Config\Services::request(false);
-
-        return new \App\Libraries\Localization\PublicSlugStore(
+        return new \dcardenasl\Ci4ApiCore\Localization\PublicSlugStore(
             new \App\Models\EventPublicSlugModel(),
-            new \App\Libraries\Localization\SlugGenerator(),
-            new \App\Libraries\Localization\RequestLocaleResolver(
-                $request instanceof \CodeIgniter\HTTP\IncomingRequest ? $request : null
-            ),
+            new \dcardenasl\Ci4ApiCore\Localization\SlugGenerator(),
+            static::requestLocaleResolver(),
+            config('Localization'),
         );
     }
 

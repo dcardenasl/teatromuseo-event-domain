@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Libraries;
 
-use App\Libraries\Localization\SlugGenerator;
 use CodeIgniter\Test\CIUnitTestCase;
+use dcardenasl\Ci4ApiCore\Localization\SlugGenerator;
 
 /**
  * @internal

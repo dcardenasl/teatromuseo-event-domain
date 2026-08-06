@@ -4,26 +4,32 @@ declare(strict_types=1);
 
 namespace Config;
 
-use CodeIgniter\Config\BaseConfig;
+use dcardenasl\Ci4ApiCore\Config\Localization as BaseLocalization;
 
 /**
- * Content localization settings for the Event Domain.
+ * Content localization registry for the Event Domain.
  *
- * This is intentionally not a list of supported languages. The CMS language
- * catalog is dynamic; this only provides a safe fallback for legacy rows that
- * predate event_translations.
+ * `$translatableFields` is the explicit content contract for resources owned by
+ * this domain, and doubles as the allow-list that stops arbitrary database
+ * columns from becoming translatable — adding a resource stays a deliberate
+ * schema decision. It replaces the former `App\Libraries\Localization\
+ * TranslationFieldCatalog`, whose `fields()`/`hasField()` contract the core
+ * config now provides verbatim.
+ *
+ * `$legacyFallbackLocale` is intentionally not a list of supported languages:
+ * the CMS language catalog is dynamic, and this only provides a safe fallback
+ * for legacy rows that predate `event_translations`. Override it per environment
+ * with `LOCALIZATION_LEGACY_FALLBACK_LOCALE`.
  */
-class Localization extends BaseConfig
+class Localization extends BaseLocalization
 {
+    /** @var array<string, list<string>> */
+    public array $translatableFields = [
+        'event'       => ['title', 'description'],
+        'event_type'  => ['name'],
+        'venue'       => ['name', 'description'],
+        'ticket_type' => ['name'],
+    ];
+
     public string $legacyFallbackLocale = 'es';
-
-    public function __construct()
-    {
-        parent::__construct();
-
-        $configured = trim((string) env('EVENT_LEGACY_FALLBACK_LOCALE', 'es'));
-        if (preg_match('/^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i', $configured) === 1) {
-            $this->legacyFallbackLocale = strtolower(str_replace('_', '-', $configured));
-        }
-    }
 }
