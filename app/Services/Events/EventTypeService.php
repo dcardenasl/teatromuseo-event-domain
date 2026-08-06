@@ -6,17 +6,17 @@ namespace App\Services\Events;
 
 use App\Entities\EventTypeEntity;
 use App\Interfaces\Events\EventTypeServiceInterface;
-use App\Libraries\Localization\LocalizedTranslationStore;
-use App\Libraries\Localization\PublicSlugStore;
-use App\Libraries\Localization\SlugGenerator;
 use App\Models\EventPublicSlugModel;
-use App\Traits\Services\HasLocalizedTranslations;
-use App\Traits\Services\HasPublicSlugs;
 use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
 use dcardenasl\Ci4ApiCore\Dto\SecurityContext;
+use dcardenasl\Ci4ApiCore\Localization\LocalizedTranslationStore;
+use dcardenasl\Ci4ApiCore\Localization\PublicSlugStore;
+use dcardenasl\Ci4ApiCore\Localization\SlugGenerator;
 use dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface;
 use dcardenasl\Ci4ApiCore\Repositories\RepositoryInterface;
 use dcardenasl\Ci4ApiCore\Services\BaseCrudService;
+use dcardenasl\Ci4ApiCore\Services\HasLocalizedTranslations;
+use dcardenasl\Ci4ApiCore\Services\HasPublicSlugs;
 
 /**
  * @extends BaseCrudService<EventTypeEntity>
