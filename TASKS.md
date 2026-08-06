@@ -3,7 +3,7 @@
 > Fuente de verdad para trabajo en este repo.
 > Historial de completadas: ver `TASKS_ARCHIVE.md`.
 > Cross-repo: ver `../TASKS.md`.
-> Última actualización: 2026-08-05 (SEC-06 + CFG-04 + CFG-02 + CFG-07 + CFG-08 completadas)
+> Última actualización: 2026-08-06 (CORE-01/02/03 + LAYER-03 + LAYER-04 completadas)
 
 ---
 
@@ -29,41 +29,42 @@
 
 ### Fase 3 — Extracción a `ci4-api-core`
 
-- [ ] **CORE-01 — Extraer el stack de localización.** Este repo es la **implementación de referencia** de la
-  que se portó la de catalog: ~830 líneas hoy forkeadas.
-  `RequestLocaleResolver.php` y `SlugGenerator.php` son byte-idénticos entre ambos;
-  `LocalizedTranslationStore.php` y `PublicSlugStore.php` difieren en 3 líneas.
-  En las dos divergencias funcionales, **la versión de este repo es la correcta**: el respaldo
-  `?: trim((string) ($entity->slug ?? ''))` de `HasPublicSlugs.php:109-110,131-132`
-  (catalog lo perdió → `SEC-05`), y la ausencia de `$data['id'] = $id;` en `beforeUpdate()`.
-- [ ] **CORE-02 — Consolidar filtros y boilerplate.** Aportar la versión de
-  `app/Filters/PermissionFilter.php:46-52` (la única que concede paso a `iam.superadmin-access`,
-  con su justificación en comentario) y el `onlyEntities()` de `AuditLogModel` que api y cms nunca
-  recibieron.
-- [ ] **CORE-03 — `app/Config/Api.php` es una copia verbatim de 148 líneas** de la que publica
-  `ci4-api-core`, arrastrando toda la configuración JWT en una app que no puede firmar ni verificar
-  un JWT. Extender la base del paquete como ya hace el hub.
+- [x] ~~CORE-01~~ — **completado 2026-08-05.** Ver Completadas. Este repo fue la implementación de
+  referencia de la que se portó la del paquete y la de catalog.
+- [x] ~~CORE-02~~ — **completado 2026-08-06.** El bypass de superadmin de
+  `app/Filters/PermissionFilter.php:46-52` (el único que ya lo tenía) es ahora
+  `AbstractPermissionFilter::superAdminBypassCode()` en el paquete, adoptado también por cms y
+  catalog — SEC-02 queda unificado en las tres apps. `HasCrudActions` resultó ser código muerto
+  (ningún controlador lo usaba) — eliminado, no migrado. El `onlyEntities()` de `AuditLogModel`
+  y el drift de esquema en las migraciones de infra **siguen sin reconciliar** — sin base
+  compartida en el paquete para eso. Ver Completadas.
+- [x] ~~CORE-03~~ — **completado 2026-08-06.** Ver Completadas.
 - [ ] **CORE-06 — Convención de permisos.** Hoy `event.<kebab-plural>.<read|write|delete>`
-  (`event.event-references.write`), incompatible con cms y catalog. ⚠️ Ventana de mantenimiento.
+  (`event.event-references.write`), incompatible con cms y catalog.
+  **Confirmado fuera de alcance de `ci4-api-core`** — es config local más una migración de datos
+  en el hub, no código de paquete. ⚠️ **`domain:sync-permissions` es insert-if-missing, no
+  upsert**: renombrar sin migración SQL manual deja huérfanas las filas viejas de `permissions` y
+  sus bindings en `role_permissions`. Ventana de mantenimiento — **no tocar sin confirmación
+  explícita.**
 
 ### Fase 4 — Coherencia de capas
 
-- [ ] **LAYER-01 — `Controllers/Api/V1/Events/PublicEventController.php` rompe cuatro reglas a la
-  vez:** (1) **muta el superglobal de la petición** para inyectar filtros y un `sort` por defecto
-  (l.42-56); (2) **llama al cliente del hub desde el controlador** (l.101,
-  `Services::hubClient()`); (3) lleva un `resolveMediaFields()` privado de ~55 líneas que difiere
-  de la copia de catalog **solo por el nombre de la variable**; (4) `show()` recibe `(array $dto, ...)`
-  con `$dto` sin usar (l.34).
-- [ ] **LAYER-03 — `Services/Events/BookingService.php`** accede al builder crudo en l.90-102 y
-  l.204-222 — **el mismo bloque duplicado dentro de la misma clase** (locking de `ticket_types`,
-  `occurrences`, `events`). Igual `Services/Events/FileUsageService.php:41`.
-- [ ] **LAYER-04 — Falta `ControllerModelDependencyConventionsTest`**, que sí existe en cms y
-  catalog.
-- [ ] **LAYER-06 — Esquema deprecado todavía en el contrato público.**
-  `2026-07-27-022000_MakeLegacyEventScheduleNullable.php` anuló `events.start_time`, `end_time`,
-  `venue`, `capacity` y `available_spots`, superados por las tablas `occurrences` y `venues`.
-  Los cinco **siguen** en `EventModel::$allowedFields/$filterableFields/$sortableFields/$searchableFields`
-  (l.23-32) y en `EventResponseDTO` (l.46-55, 79-83). Retirarlos, con nota de versión en el swagger.
+- [ ] **LAYER-01 — `Controllers/Api/V1/Events/PublicEventController.php` — 2 de 4 reglas
+  corregidas, 2 siguen abiertas (verificado 2026-08-06).** Ya resuelto (trabajo previo sin
+  commitear, no de esta pasada): (1) `index()` ya no muta el superglobal de la petición — el
+  filtro `status=published` y el orden especial de cartelera viven en
+  `EventService::indexPublicCartelera()`; (4) `show()` ya no recibe `$dto` sin usar
+  (`fn (mixed $_, SecurityContext $context)`). **Siguen abiertos**, no tocados en esta pasada
+  (fuera del alcance de LAYER-03/04, requieren su propia decisión de diseño): (2)
+  `resolveMediaFields()` sigue llamando a `Services::hubClient()` desde el controlador; (3)
+  sigue siendo ~55 líneas **byte-idénticas** a
+  `PublicCollectionItemController::resolveMediaFields()` de catalog-domain (mismo defecto
+  ahí también, no exclusivo de este repo — difieren solo en el nombre de variable
+  `$event`/`$item`).
+- [x] ~~LAYER-03~~ — **completado 2026-08-06.** Ver Completadas.
+- [x] ~~LAYER-04~~ — **completado 2026-08-06.** Ver Completadas.
+- [x] ~~LAYER-06~~ — **verificado ya resuelto 2026-08-06** (checkbox desactualizado, trabajo
+  previo sin commitear). Ver Completadas.
 
 ### Fase 5 — Migraciones y semillas
 
@@ -92,6 +93,89 @@
 ---
 
 ## ✅ Completadas
+
+### LAYER-03 + LAYER-04 + verificación LAYER-01/LAYER-06 — Fase 4, coherencia de capas (2026-08-06)
+
+- **LAYER-03 — deduplicado el bloqueo de inventario de `BookingService`.** `beforeStore()`
+  (decremento al crear un hold) y `beforeUpdate()` (incremento al cancelar/expirar) tenían el
+  mismo bloque de `$db->table(...)->set('available_spots', ...)->update()` sobre `ticket_types`
+  y `occurrences` duplicado byte-por-byte dentro de la misma clase. Extraído a un único método
+  privado `BookingService::adjustInventory()`, que delega el UPDATE atómico a un método nuevo de
+  modelo compartido — `TicketTypeModel`/`OccurrenceModel::adjustAvailableSpots()`, vía trait
+  `App\Traits\Models\HasAvailableSpots` — que encapsula el `WHERE available_spots >= N` que evita
+  oversell en decrementos (sin guardia en incrementos, que siempre deben liberar el cupo). El
+  builder crudo queda encapsulado en el Model, no en el Service. También `FileUsageService.php:41`
+  (acceso directo a `BaseConnection::table('events')` desde el Service) migrado a un método nuevo
+  `EventModel::findReferencingHubFile()`; `FileUsageService` ahora depende de `EventModel` en vez
+  de `BaseConnection` (wiring actualizado en `EventsDomainServices::fileUsageService()`).
+  `ServiceModelDependencyConventionsTest::ALLOWED` amplíado con `FileUsageService.php` (excepción
+  justificada y documentada, no un nuevo defecto). **Nota de alcance:** cms-domain y
+  catalog-domain tienen el mismo patrón de `FileUsageService` con `BaseConnection` cruda — no se
+  tocaron por estar fuera de este repo; quedan como candidatos si se decide unificar el patrón
+  cross-repo más adelante.
+- **LAYER-04 — `ControllerModelDependencyConventionsTest` ya existía** en el working tree (archivo
+  sin trackear de una pasada previa sin commitear), con baseline vacío. Verificado que corre y
+  pasa sin violaciones reales — no fue necesario portar nada nuevo ni agregar whitelist.
+- **LAYER-01 y LAYER-06 — verificación de checkboxes desactualizados, no trabajo de esta pasada.**
+  LAYER-06 (retiro de `start_time`/`end_time`/`venue`/`capacity`/`available_spots` de
+  `EventModel` y `EventResponseDTO`) confirmado **completo** contra el código ya presente
+  (sin commitear) en el working tree. LAYER-01 confirmado **parcial**: 2 de sus 4 sub-problemas
+  ya resueltos (mutación de `$_GET` movida a `EventService::indexPublicCartelera()`; `$dto` sin
+  usar en `show()` corregido), pero **2 siguen abiertos** — `PublicEventController` sigue
+  llamando `Services::hubClient()` directamente y su `resolveMediaFields()` sigue siendo
+  byte-idéntica a la de `PublicCollectionItemController` en catalog-domain. TASKS.md corregido
+  para reflejar el estado real en vez de marcarlo completo.
+- **Verificado:** `composer cs-check` ✅, `composer phpstan` ✅ (nivel 8, sin errores), 238 tests /
+  589 assertions ✅ (incluye la suite completa de `BookingServiceIntegrationTest` — ciclo de hold,
+  sold-out, ocurrencia programada — sin cambios de comportamiento), 16 tests de arquitectura ✅,
+  `i18n-check`/`docs-i18n-check` ✅. `swagger-validate` sigue fallando por el mismo motivo ya
+  documentado en la entrada CORE-01+CORE-03 (diff de `public/swagger.json` pendiente de commit
+  del trabajo en curso de LAYER-06, no causado por LAYER-03/04 — confirmado: el diff no cambió de
+  tamaño antes/después de estos cambios).
+
+### CORE-02 — Filtros a las bases del paquete v1.3.0 (2026-08-06, segunda pasada)
+
+- **SEC-02 finalmente unificado.** `PermissionFilter` extiende `AbstractPermissionFilter`
+  (`ci4-api-core` v1.3.0). Esta app ya tenía el bypass de superadmin desde antes; ahora vive como
+  `superAdminBypassCode()` en el paquete, y **cms y catalog lo adoptaron también** — las tres
+  apps se comportan igual por primera vez. Como `app/Language/{es,en}/Auth.php` no define
+  `authRequired`/`insufficientPermissions` (solo `rateLimitExceeded`), se sobrescribieron
+  `unauthenticatedMessage()`/`forbiddenMessage()` para seguir leyendo `Api.authRequired`/
+  `Api.insufficientPermissions`. Nuevo test `tests/Unit/Filters/PermissionFilterTest.php`
+  (6 casos — esta app no tenía ninguno antes, pese a ser la única con el bypass).
+- `HubSignatureFilter` y `WebAppKeyRequiredFilter` ahora extienden
+  `AbstractHubSignatureFilter`/`AbstractWebAppKeyRequiredFilter`. Nuevo test
+  `WebAppKeyRequiredFilterTest.php` (4 casos, no existía antes).
+- **`app/Traits/Controllers/HasCrudActions.php` resultó ser código muerto, no boilerplate en
+  uso.** Byte-idéntico en api/cms/catalog/event, pero ningún controlador real lo consumía. Se
+  eliminó en vez de migrarse.
+- **Sigue sin reconciliar:** el `onlyEntities()` de `AuditLogModel` (catalog y event lo tienen,
+  api y cms no) y el drift de esquema en `jobs`/`request_logs`/`audit_logs`/`idempotency_keys` —
+  sin base compartida en el paquete para esto, `core:install` no ayuda porque las 4 apps ya
+  tienen sus propias migraciones con ese nombre de clase.
+
+**Verificación:** 237 tests / 588 assertions ✅, PHPStan sin errores, CS limpio.
+
+### CORE-01 + CORE-03 — Localización y Config\Api al paquete (2026-08-06)
+
+- **CORE-01:** eliminado el fork local de localización (`Libraries/Localization/*` y
+  `Traits/Services/Has*`) — **1.131 líneas menos**. Ahora se consume el runtime de
+  `ci4-api-core` v1.2.0, que se construyó tomando **esta** implementación como referencia: las dos
+  divergencias funcionales que tenía con catalog (el respaldo de slug y el `$data['id']` en
+  `beforeUpdate()`) están resueltas aguas arriba. `TranslationFieldCatalog` quedó absorbido por
+  `Config\Localization`. `EventTranslationModel` y `EventPublicSlugModel` extienden ahora las bases
+  del paquete.
+- **CORE-03:** `app/Config/Api.php` pasa de 148 líneas copiadas a extender la base del paquete.
+- **Variable de entorno:** `EVENT_LEGACY_FALLBACK_LOCALE` → `LOCALIZATION_LEGACY_FALLBACK_LOCALE`
+  (compartida por todos los dominios). Actualizado `.env.example`; el valor por defecto no cambia.
+- **Test actualizado:** `LocalizedTranslationStoreTest` construía el store con la firma antigua
+  `(model, ?IncomingRequest)`; ahora usa `(model, RequestLocaleResolver, Config\Localization)`.
+- **Test de arquitectura robustecido:** `AuditableModelConventionsTest` ahora recorre la cadena de
+  herencia en vez de comparar el texto de `extends`.
+
+**Verificación:** 227 tests / 572 assertions ✅, PHPStan sin errores, CS limpio.
+⚠️ `composer quality` sigue fallando en `swagger-validate` mientras `public/swagger.json` esté
+regenerado pero sin commitear — es el estado del trabajo en curso sobre `LAYER-06`, no un defecto.
 
 ### CFG-08 — Tooling y hook de publicación alineados (2026-08-05)
 - PHPStan actualizado a 2.2.8 en `composer.json` y `composer.lock`; añadido `pre-push` no
