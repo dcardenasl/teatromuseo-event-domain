@@ -1723,28 +1723,6 @@
                             "type": "object"
                         }
                     },
-                    "start_time": {
-                        "description": "start_time",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "end_time": {
-                        "description": "end_time",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "venue": {
-                        "description": "venue",
-                        "type": "string"
-                    },
-                    "capacity": {
-                        "description": "capacity",
-                        "type": "integer"
-                    },
-                    "available_spots": {
-                        "description": "available_spots",
-                        "type": "integer"
-                    },
                     "status": {
                         "description": "status",
                         "type": "string"
@@ -1929,33 +1907,6 @@
                         },
                         "nullable": true
                     },
-                    "start_time": {
-                        "description": "start_time",
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
-                    },
-                    "end_time": {
-                        "description": "end_time",
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
-                    },
-                    "venue": {
-                        "description": "venue",
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "capacity": {
-                        "description": "capacity",
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "available_spots": {
-                        "description": "available_spots",
-                        "type": "integer",
-                        "nullable": true
-                    },
                     "status": {
                         "description": "status",
                         "type": "string",
@@ -2092,8 +2043,7 @@
                     },
                     "occurrence_id": {
                         "description": "Concrete scheduled occurrence",
-                        "type": "integer",
-                        "nullable": true
+                        "type": "integer"
                     },
                     "name": {
                         "description": "name",
@@ -2551,7 +2501,8 @@
                     "description",
                     "status",
                     "translations",
-                    "localized"
+                    "localized",
+                    "occurrences"
                 ],
                 "properties": {
                     "id": {
@@ -2604,27 +2555,12 @@
                         "description": "Every public routing slug, keyed by locale",
                         "type": "object"
                     },
-                    "start_time": {
-                        "description": "start_time",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "end_time": {
-                        "description": "end_time",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "venue": {
-                        "description": "venue",
-                        "type": "string"
-                    },
-                    "capacity": {
-                        "description": "capacity",
-                        "type": "integer"
-                    },
-                    "available_spots": {
-                        "description": "available_spots",
-                        "type": "integer"
+                    "occurrences": {
+                        "description": "Concrete scheduled occurrences",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
                     },
                     "status": {
                         "description": "status",
@@ -2752,6 +2688,11 @@
                         "description": "available_spots",
                         "type": "integer"
                     },
+                    "timezone": {
+                        "description": "IANA timezone for the venue schedule",
+                        "type": "string",
+                        "example": "America/Santiago"
+                    },
                     "created_at": {
                         "description": "Creation timestamp",
                         "type": "string",
@@ -2840,6 +2781,7 @@
                 "required": [
                     "id",
                     "event_id",
+                    "occurrence_id",
                     "name",
                     "price",
                     "capacity",
@@ -2861,8 +2803,7 @@
                     },
                     "occurrence_id": {
                         "description": "Concrete scheduled occurrence",
-                        "type": "integer",
-                        "nullable": true
+                        "type": "integer"
                     },
                     "name": {
                         "description": "name",
