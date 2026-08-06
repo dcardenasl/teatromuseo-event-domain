@@ -34,17 +34,16 @@ class EventTypeController extends ApiController
 
     public function checkSlug(): ResponseInterface
     {
-        $this->resolveDefaultService();
-        $slugValue = $this->request->getGet('slug');
-        $localeValue = $this->request->getGet('locale') ?? $this->request->getGet('language_code');
-        $currentIdValue = $this->request->getGet('current_id');
-        $slug = is_scalar($slugValue) ? (string) $slugValue : '';
-        $locale = is_scalar($localeValue) ? (string) $localeValue : '';
-        $currentId = is_numeric($currentIdValue) ? (int) $currentIdValue : 0;
+        return $this->handleRequest(function () {
+            $slugValue = $this->request->getGet('slug');
+            $localeValue = $this->request->getGet('locale') ?? $this->request->getGet('language_code');
+            $currentIdValue = $this->request->getGet('current_id');
+            $slug = is_scalar($slugValue) ? (string) $slugValue : '';
+            $locale = is_scalar($localeValue) ? (string) $localeValue : '';
+            $currentId = is_numeric($currentIdValue) ? (int) $currentIdValue : 0;
 
-        return $this->response->setJSON([
-            'available' => $this->eventTypeService->isSlugAvailable($slug, $locale, $currentId),
-        ]);
+            return ['available' => $this->eventTypeService->isSlugAvailable($slug, $locale, $currentId)];
+        });
     }
 
     public function create(): ResponseInterface
