@@ -12,7 +12,7 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(
     schema: 'EventResponse',
     title: 'Event Response',
-    required: ["id","uuid","title","event_type","description","status","translations","localized"]
+    required: ["id","uuid","title","event_type","description","status","translations","localized","occurrences"]
 )]
 final readonly class EventResponseDTO implements DataTransferObjectInterface
 {
@@ -45,16 +45,9 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
         /** @var array<string, string> */
         #[OA\Property(description: 'Every public routing slug, keyed by locale', type: 'object')]
         public array $slugs,
-        #[OA\Property(description: 'start_time', type: 'string', format: 'date-time')]
-        public ?string $start_time,
-        #[OA\Property(description: 'end_time', type: 'string', format: 'date-time')]
-        public ?string $end_time,
-        #[OA\Property(description: 'venue', type: 'string')]
-        public ?string $venue,
-        #[OA\Property(description: 'capacity', type: 'integer')]
-        public ?int $capacity,
-        #[OA\Property(description: 'available_spots', type: 'integer')]
-        public ?int $available_spots,
+        /** @var list<array<string, mixed>> */
+        #[OA\Property(description: 'Concrete scheduled occurrences', type: 'array', items: new OA\Items(type: 'object'))]
+        public array $occurrences,
         #[OA\Property(description: 'status', type: 'string')]
         public string $status,
         #[OA\Property(property: 'created_at', description: 'Creation timestamp', example: '2026-02-26 12:00:00', nullable: true)]
@@ -81,11 +74,7 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
             localized: self::normalizeLocalized($data['localized'] ?? null),
             slug: (string) ($data['slug'] ?? ''),
             slugs: is_array($data['slugs'] ?? null) ? $data['slugs'] : [],
-            start_time: isset($data['start_time']) ? (string) $data['start_time'] : null,
-            end_time: isset($data['end_time']) ? (string) $data['end_time'] : null,
-            venue: isset($data['venue']) ? (string) $data['venue'] : null,
-            capacity: isset($data['capacity']) ? (int) $data['capacity'] : null,
-            available_spots: isset($data['available_spots']) ? (int) $data['available_spots'] : null,
+            occurrences: self::normalizeOccurrences($data['occurrences'] ?? null),
             status: (string) ($data['status'] ?? ''),
             createdAt: self::normalizeResponseTimestamp($data['created_at'] ?? null),
             updatedAt: self::normalizeResponseTimestamp($data['updated_at'] ?? null),
@@ -106,14 +95,20 @@ final readonly class EventResponseDTO implements DataTransferObjectInterface
             'localized' => $this->localized,
             'slug' => $this->slug,
             'slugs' => $this->slugs,
-            'start_time' => $this->start_time,
-            'end_time' => $this->end_time,
-            'venue' => $this->venue,
-            'capacity' => $this->capacity,
-            'available_spots' => $this->available_spots,
+            'occurrences' => $this->occurrences,
             'status' => $this->status,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
         ];
+    }
+
+    /** @return list<array<string, mixed>> */
+    private static function normalizeOccurrences(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return array_values(array_filter($value, static fn (mixed $item): bool => is_array($item)));
     }
 }

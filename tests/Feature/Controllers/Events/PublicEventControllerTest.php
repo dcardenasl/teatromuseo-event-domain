@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Controllers\Events;
 
 use App\DTO\Request\Events\EventCreateRequestDTO;
+use App\DTO\Request\Events\OccurrenceCreateRequestDTO;
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\DatabaseTestTrait;
 use CodeIgniter\Test\FeatureTestTrait;
@@ -63,6 +64,28 @@ final class PublicEventControllerTest extends CIUnitTestCase
         $titles = array_column($body['data'] ?? [], 'title');
         $this->assertContains('Función Viva', $titles);
         $this->assertNotContains('Ensayo Cerrado', $titles);
+    }
+
+    public function testPublicCarteleraExcludesPublishedEventsWithoutOccurrences(): void
+    {
+        $event = Services::eventService(false)->store(Services::requestDtoFactory()->make(EventCreateRequestDTO::class, [
+            'title' => 'Función sin horario',
+            'event_type' => 'function',
+            'description' => 'No debe publicarse sin una función programada.',
+            'status' => 'published',
+        ]))->toArray();
+
+        $listing = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])->get('/api/v1/public/events');
+        $listing->assertStatus(200);
+        $body = json_decode((string) $listing->getJSON(), true);
+        $titles = array_column($body['data'] ?? [], 'title');
+
+        $this->assertNotContains('Función sin horario', $titles);
+        $this->assertSame(0, (int) ($body['meta']['total'] ?? 0));
+
+        $detail = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])
+            ->get('/api/v1/public/events/' . $event['id']);
+        $detail->assertStatus(404);
     }
 
     public function testTypesReturnsActiveEventTypeCatalogue(): void
@@ -137,12 +160,29 @@ final class PublicEventControllerTest extends CIUnitTestCase
      */
     private function createEvent(string $title, string $status, ?string $startTime = null): array
     {
-        return Services::eventService(false)->store(Services::requestDtoFactory()->make(EventCreateRequestDTO::class, [
+        $event = Services::eventService(false)->store(Services::requestDtoFactory()->make(EventCreateRequestDTO::class, [
             'title' => $title,
             'event_type' => 'function',
             'description' => 'Descripción de ' . $title,
             'status' => $status,
-            'start_time' => $startTime,
         ]))->toArray();
+
+        $start = $startTime ?? (new \DateTimeImmutable('now', new \DateTimeZone('America/Santiago')))
+            ->modify('+1 hour')
+            ->format('Y-m-d H:i:s');
+        $end = (new \DateTimeImmutable($start, new \DateTimeZone('America/Santiago')))
+            ->modify('+2 hours')
+            ->format('Y-m-d H:i:s');
+
+        Services::occurrenceService(false)->store(Services::requestDtoFactory()->make(OccurrenceCreateRequestDTO::class, [
+            'event_id' => $event['id'],
+            'start_time' => $start,
+            'end_time' => $end,
+            'status' => 'scheduled',
+            'capacity' => 0,
+            'available_spots' => 0,
+        ]));
+
+        return $event;
     }
 }

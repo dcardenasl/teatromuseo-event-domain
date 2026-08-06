@@ -34,6 +34,8 @@ final readonly class OccurrenceResponseDTO implements DataTransferObjectInterfac
         public int $capacity,
         #[OA\Property(description: 'available_spots', type: 'integer')]
         public int $available_spots,
+        #[OA\Property(description: 'IANA timezone for the venue schedule', type: 'string', example: 'America/Santiago')]
+        public string $timezone = 'America/Santiago',
         #[OA\Property(property: 'created_at', description: 'Creation timestamp', example: '2026-02-26 12:00:00', nullable: true)]
         public ?string $createdAt = null,
         #[OA\Property(property: 'updated_at', description: 'Last update timestamp', example: '2026-02-26 12:00:00', nullable: true)]
@@ -55,6 +57,7 @@ final readonly class OccurrenceResponseDTO implements DataTransferObjectInterfac
             status: (string) ($data['status'] ?? ''),
             capacity: (int) ($data['capacity'] ?? 0),
             available_spots: (int) ($data['available_spots'] ?? 0),
+            timezone: (string) ($data['timezone'] ?? 'America/Santiago'),
             createdAt: self::normalizeResponseTimestamp($data['created_at'] ?? null),
             updatedAt: self::normalizeResponseTimestamp($data['updated_at'] ?? null),
         );
@@ -74,6 +77,7 @@ final readonly class OccurrenceResponseDTO implements DataTransferObjectInterfac
             'status' => $this->status,
             'capacity' => $this->capacity,
             'available_spots' => $this->available_spots,
+            'timezone' => $this->timezone,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
         ];

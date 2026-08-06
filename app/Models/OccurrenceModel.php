@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Entities\OccurrenceEntity;
+use App\Traits\Models\HasAvailableSpots;
 use dcardenasl\Ci4ApiCore\Models\BaseAuditableModel;
 use dcardenasl\Ci4ApiCore\Models\Traits\Filterable;
 use dcardenasl\Ci4ApiCore\Models\Traits\Searchable;
@@ -13,6 +14,7 @@ class OccurrenceModel extends BaseAuditableModel
 {
     use Filterable;
     use Searchable;
+    use HasAvailableSpots;
 
     protected $table = 'occurrences';
     protected $primaryKey = 'id';

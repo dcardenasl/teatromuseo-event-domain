@@ -20,16 +20,16 @@ class EventModel extends BaseAuditableModel
     protected $useSoftDeletes = true;
     protected $useTimestamps = true;
 
-    protected $allowedFields = ['uuid', 'title', 'event_type', 'description', 'cover_file_id', 'gallery_file_ids', 'start_time', 'end_time', 'venue', 'capacity', 'available_spots', 'status'];
+    protected $allowedFields = ['uuid', 'title', 'event_type', 'description', 'cover_file_id', 'gallery_file_ids', 'status'];
 
     /** @var array<int, string> */
-    protected array $searchableFields = ['title', 'venue'];
+    protected array $searchableFields = ['title'];
 
     /** @var array<int, string> */
-    protected array $filterableFields = ['id', 'event_type', 'start_time', 'end_time', 'capacity', 'available_spots', 'status'];
+    protected array $filterableFields = ['id', 'event_type', 'status'];
 
     /** @var array<int, string> */
-    protected array $sortableFields = ['id', 'created_at', 'title', 'event_type', 'start_time', 'end_time', 'venue', 'capacity', 'available_spots', 'status'];
+    protected array $sortableFields = ['id', 'created_at', 'title', 'event_type', 'status'];
 
     protected $validationRules = [
         // The model owns UUID generation. Keeping this optional at validation
@@ -40,11 +40,6 @@ class EventModel extends BaseAuditableModel
         'description' => 'required|string',
         'cover_file_id' => 'permit_empty|integer',
         'gallery_file_ids' => 'permit_empty|string',
-        'start_time' => 'permit_empty|valid_date',
-        'end_time' => 'permit_empty|valid_date',
-        'venue' => 'permit_empty|string|max_length[255]',
-        'capacity' => 'permit_empty|integer',
-        'available_spots' => 'permit_empty|integer',
     ];
 
     protected $beforeInsert = ['generateUuid'];
@@ -59,5 +54,29 @@ class EventModel extends BaseAuditableModel
             $data['data']['uuid'] = \dcardenasl\Ci4ApiCore\Security\Token::generateUuid();
         }
         return $data;
+    }
+
+    /**
+     * Rows referencing a given Hub file id via `cover_file_id` or the
+     * `gallery_file_ids` CSV column, for FileUsageService's usage-reporting
+     * endpoint. `gallery_file_ids` is a plain CSV column (no FIND_IN_SET/JSON
+     * index), so a SQL substring match would false-positive (file 1 matching
+     * "21" or "12,1") — this only narrows candidates; the caller verifies
+     * exact membership in PHP.
+     *
+     * @return list<array{id: int|string, title: mixed, cover_file_id: mixed, gallery_file_ids: mixed}>
+     */
+    public function findReferencingHubFile(int $hubFileId): array
+    {
+        $result = $this->builder()
+            ->select('id, title, cover_file_id, gallery_file_ids')
+            ->where('deleted_at', null)
+            ->groupStart()
+                ->where('cover_file_id', $hubFileId)
+                ->orLike('gallery_file_ids', (string) $hubFileId, 'both')
+            ->groupEnd()
+            ->get();
+
+        return $result ? array_values($result->getResultArray()) : [];
     }
 }

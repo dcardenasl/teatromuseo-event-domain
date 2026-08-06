@@ -16,7 +16,7 @@ readonly class TicketTypeCreateRequestDTO extends BaseRequestDTO
         parent::__construct($data, $validation);
 
         $this->event_id = (int) ($data['event_id'] ?? 0);
-        $this->occurrence_id = isset($data['occurrence_id']) ? (int) $data['occurrence_id'] : null;
+        $this->occurrence_id = (int) ($data['occurrence_id'] ?? 0);
         $this->name = (string) ($data['name'] ?? '');
         $this->translations = is_array($data['translations'] ?? null) ? array_values($data['translations']) : [];
         $this->price = (float) ($data['price'] ?? 0);
@@ -29,8 +29,8 @@ readonly class TicketTypeCreateRequestDTO extends BaseRequestDTO
 
     #[OA\Property(description: 'event_id', type: 'integer')]
     public int $event_id;
-    #[OA\Property(description: 'Concrete scheduled occurrence', type: 'integer', nullable: true)]
-    public ?int $occurrence_id;
+    #[OA\Property(description: 'Concrete scheduled occurrence', type: 'integer')]
+    public int $occurrence_id;
     #[OA\Property(description: 'name', type: 'string')]
     public string $name;
     /** @var list<array<string, mixed>> */
@@ -51,7 +51,7 @@ readonly class TicketTypeCreateRequestDTO extends BaseRequestDTO
     {
         return [
             'event_id' => 'required|is_natural_no_zero|is_not_unique[events.id]',
-            'occurrence_id' => 'permit_empty|is_natural_no_zero|is_not_unique[occurrences.id]',
+            'occurrence_id' => 'required|is_natural_no_zero|is_not_unique[occurrences.id]',
             'name' => 'required|string|max_length[255]',
             'translations' => 'permit_empty',
             'price' => 'required|decimal',

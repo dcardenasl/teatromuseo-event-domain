@@ -22,11 +22,6 @@ readonly class EventCreateRequestDTO extends BaseRequestDTO
         $this->cover_file_id = isset($data['cover_file_id']) ? (int) $data['cover_file_id'] : null;
         $this->gallery_file_ids = $data['gallery_file_ids'] ?? null;
         $this->translations = is_array($data['translations'] ?? null) ? array_values($data['translations']) : [];
-        $this->start_time = isset($data['start_time']) ? (string) $data['start_time'] : null;
-        $this->end_time = isset($data['end_time']) ? (string) $data['end_time'] : null;
-        $this->venue = isset($data['venue']) ? (string) $data['venue'] : null;
-        $this->capacity = isset($data['capacity']) ? (int) $data['capacity'] : null;
-        $this->available_spots = isset($data['available_spots']) ? (int) $data['available_spots'] : null;
         $this->status = (string) ($data['status'] ?? '');
 
     }
@@ -46,16 +41,6 @@ readonly class EventCreateRequestDTO extends BaseRequestDTO
     /** @var list<array<string, mixed>> */
     #[OA\Property(description: 'Localized content rows keyed by locale code', type: 'array', items: new OA\Items(type: 'object'))]
     public array $translations;
-    #[OA\Property(description: 'start_time', type: 'string', format: 'date-time')]
-    public ?string $start_time;
-    #[OA\Property(description: 'end_time', type: 'string', format: 'date-time')]
-    public ?string $end_time;
-    #[OA\Property(description: 'venue', type: 'string')]
-    public ?string $venue;
-    #[OA\Property(description: 'capacity', type: 'integer')]
-    public ?int $capacity;
-    #[OA\Property(description: 'available_spots', type: 'integer')]
-    public ?int $available_spots;
     #[OA\Property(description: 'status', type: 'string')]
     public string $status;
 
@@ -69,11 +54,6 @@ readonly class EventCreateRequestDTO extends BaseRequestDTO
             'cover_file_id' => 'permit_empty|integer',
             'gallery_file_ids' => 'permit_empty|string',
             'translations' => 'permit_empty',
-            'start_time' => 'permit_empty|valid_date',
-            'end_time' => 'permit_empty|valid_date',
-            'venue' => 'permit_empty|string|max_length[255]',
-            'capacity' => 'permit_empty|integer',
-            'available_spots' => 'permit_empty|integer',
             'status' => 'required|string|max_length[255]',
         ];
     }
@@ -92,11 +72,6 @@ readonly class EventCreateRequestDTO extends BaseRequestDTO
             'cover_file_id' => $this->cover_file_id,
             'gallery_file_ids' => $this->gallery_file_ids,
             'translations' => $this->translations,
-            'start_time' => $this->start_time,
-            'end_time' => $this->end_time,
-            'venue' => $this->venue,
-            'capacity' => $this->capacity,
-            'available_spots' => $this->available_spots,
             'status' => $this->status,
         ];
     }

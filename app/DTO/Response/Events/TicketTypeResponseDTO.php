@@ -12,7 +12,7 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(
     schema: 'TicketTypeResponse',
     title: 'TicketType Response',
-    required: ["id","event_id","name","price","capacity","available_spots","sales_start","sales_end","translations","localized"]
+    required: ["id","event_id","occurrence_id","name","price","capacity","available_spots","sales_start","sales_end","translations","localized"]
 )]
 final readonly class TicketTypeResponseDTO implements DataTransferObjectInterface
 {
@@ -24,8 +24,8 @@ final readonly class TicketTypeResponseDTO implements DataTransferObjectInterfac
         public int $id,
         #[OA\Property(description: 'event_id', type: 'integer')]
         public int $event_id,
-        #[OA\Property(description: 'Concrete scheduled occurrence', type: 'integer', nullable: true)]
-        public ?int $occurrence_id,
+        #[OA\Property(description: 'Concrete scheduled occurrence', type: 'integer')]
+        public int $occurrence_id,
         #[OA\Property(description: 'name', type: 'string')]
         public string $name,
         /** @var list<array<string, string>> */
@@ -59,7 +59,7 @@ final readonly class TicketTypeResponseDTO implements DataTransferObjectInterfac
         return new static(
             id: (int) ($data['id'] ?? 0),
             event_id: (int) ($data['event_id'] ?? 0),
-            occurrence_id: isset($data['occurrence_id']) ? (int) $data['occurrence_id'] : null,
+            occurrence_id: (int) ($data['occurrence_id'] ?? 0),
             name: (string) ($data['name'] ?? ''),
             translations: self::normalizeTranslationRows($data['translations'] ?? null),
             localized: self::normalizeLocalized($data['localized'] ?? null),

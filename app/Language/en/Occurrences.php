@@ -7,6 +7,9 @@ return [
     'update_success' => 'Occurrence updated successfully.',
     'delete_success' => 'Occurrence deleted successfully.',
     'not_found'      => 'Occurrence not found.',
+    'invalid_schedule_required' => 'Occurrence start and end times are required.',
+    'invalid_schedule_format' => 'Occurrence time must be a valid date and time.',
+    'invalid_schedule_order' => 'Occurrence end time must be after its start time.',
     'fields'         => [
         'event_id' => 'Event',
         'event_id_placeholder' => 'Select Event',

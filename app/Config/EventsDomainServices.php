@@ -69,6 +69,8 @@ trait EventsDomainServices
             static::eventResponseMapper(),
             static::localizedTranslationStore(),
             static::publicSlugStore(),
+            new \App\Repositories\Events\OccurrenceRepository(new \App\Models\OccurrenceModel()),
+            (string) env('EVENT_SCHEDULE_TIMEZONE', config('App')->eventScheduleTimezone),
         );
     }
     public static function ticketTypeResponseMapper(bool $getShared = true): \dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface
@@ -147,7 +149,11 @@ trait EventsDomainServices
         if ($getShared) {
             return static::getSharedInstance('occurrenceService');
         }
-        return new \App\Services\Events\OccurrenceService(new \dcardenasl\Ci4ApiCore\Repositories\GenericRepository(model(\App\Models\OccurrenceModel::class)), static::occurrenceResponseMapper());
+        return new \App\Services\Events\OccurrenceService(
+            new \dcardenasl\Ci4ApiCore\Repositories\GenericRepository(model(\App\Models\OccurrenceModel::class)),
+            static::occurrenceResponseMapper(),
+            (string) env('EVENT_SCHEDULE_TIMEZONE', config('App')->eventScheduleTimezone),
+        );
     }
     public static function eventReferenceResponseMapper(bool $getShared = true): \dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface
     {

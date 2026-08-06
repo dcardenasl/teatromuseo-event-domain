@@ -29,7 +29,7 @@ readonly class TicketTypeUpdateRequestDTO extends BaseRequestDTO
         if ($this->event_id !== null) {
             $mappedFields['event_id'] = $this->event_id;
         }
-        if (array_key_exists('occurrence_id', $data)) {
+        if ($this->occurrence_id !== null) {
             $mappedFields['occurrence_id'] = $this->occurrence_id;
         }
         if ($this->name !== null) {
@@ -97,13 +97,8 @@ readonly class TicketTypeUpdateRequestDTO extends BaseRequestDTO
     private array $mappedFields;
 
     /**
-     * occurrence_id is the only nullable column on ticket_types — it
-     * preserves an explicit null so it reaches toArray() and actually
-     * clears the column (e.g. detaching a ticket type from a specific
-     * occurrence back to "any occurrence"). Every other field is NOT NULL,
-     * so an explicit null there is treated the same as omitting the field —
-     * the bug this fixes is array_filter() silently dropping every null,
-     * which made it impossible to ever clear the one field that can be.
+     * occurrence_id is immutable to null: every ticket type must remain tied
+     * to a concrete occurrence. Omitting it leaves the existing association.
      */
     protected function map(array $data): void
     {

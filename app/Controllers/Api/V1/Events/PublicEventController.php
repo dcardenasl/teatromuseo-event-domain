@@ -31,7 +31,7 @@ class PublicEventController extends ApiController
     public function show(string $idOrSlug): ResponseInterface
     {
         return $this->handleRequest(
-            fn (array $dto, SecurityContext $context): mixed => $this->resolveMediaFields(
+            fn (mixed $_, SecurityContext $context): mixed => $this->resolveMediaFields(
                 $this->eventService->getPublicByIdOrSlug($idOrSlug)
             )
         );
@@ -39,21 +39,6 @@ class PublicEventController extends ApiController
 
     public function index(): ResponseInterface
     {
-        $request = service('request');
-        $filter = $request->getGet('filter');
-        $filter = is_array($filter) ? $filter : [];
-        $filter['status'] = 'published';
-
-        $sort = $request->getGet('sort');
-        if (! is_string($sort) || trim($sort) === '') {
-            $sort = '';
-        }
-
-        $request->setGlobal('get', array_merge($request->getGet(), [
-            'filter' => $filter,
-            'sort' => $sort,
-        ]));
-
         return $this->handleRequest(
             function (EventIndexRequestDTO $dto, SecurityContext $context): mixed {
                 $result = $this->eventService->indexPublicCartelera($dto, $context)->toArray();

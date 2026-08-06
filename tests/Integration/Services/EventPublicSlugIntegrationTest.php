@@ -6,6 +6,7 @@ namespace Tests\Integration\Services;
 
 use App\DTO\Request\Events\EventCreateRequestDTO;
 use App\DTO\Request\Events\EventUpdateRequestDTO;
+use App\DTO\Request\Events\OccurrenceCreateRequestDTO;
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\DatabaseTestTrait;
 use Config\Services;
@@ -91,6 +92,15 @@ final class EventPublicSlugIntegrationTest extends CIUnitTestCase
             'description' => 'Descripción base',
             'status' => 'published',
         ]))->toArray();
+
+        Services::occurrenceService(false)->store(Services::requestDtoFactory()->make(OccurrenceCreateRequestDTO::class, [
+            'event_id' => $created['id'],
+            'start_time' => '2026-08-10 20:00:00',
+            'end_time' => '2026-08-10 22:00:00',
+            'status' => 'scheduled',
+            'capacity' => 0,
+            'available_spots' => 0,
+        ]));
 
         $bySlug = $service->getPublicByIdOrSlug('funcion-viva');
         $this->assertSame((int) $created['id'], $bySlug['id']);

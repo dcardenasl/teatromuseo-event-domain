@@ -7,6 +7,9 @@ return [
     'update_success' => 'Occurrence actualizado(a) exitosamente.',
     'delete_success' => 'Occurrence eliminado(a) exitosamente.',
     'not_found'      => 'Occurrence no encontrado(a).',
+    'invalid_schedule_required' => 'La hora de inicio y término de la función son obligatorias.',
+    'invalid_schedule_format' => 'La hora de la función debe ser una fecha y hora válida.',
+    'invalid_schedule_order' => 'El término de la función debe ser posterior a su inicio.',
     'fields'         => [
         'event_id' => 'Event',
         'event_id_placeholder' => 'Selecciona Event',

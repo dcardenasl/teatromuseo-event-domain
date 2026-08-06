@@ -138,6 +138,12 @@ class App extends BaseConfig
     public string $appTimezone = 'UTC';
 
     /**
+     * Wall-clock timezone used by venue schedules when no venue-specific
+     * timezone is available. Technical timestamps remain UTC.
+     */
+    public string $eventScheduleTimezone = 'America/Santiago';
+
+    /**
      * --------------------------------------------------------------------------
      * Default Character Set
      * --------------------------------------------------------------------------
