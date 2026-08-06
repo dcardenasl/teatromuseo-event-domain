@@ -175,7 +175,7 @@ trait EventsDomainServices
         if ($getShared) {
             return static::getSharedInstance('fileUsageService');
         }
-        return new \App\Services\Events\FileUsageService(\Config\Database::connect());
+        return new \App\Services\Events\FileUsageService(model(\App\Models\EventModel::class));
     }
     public static function eventTypeResponseMapper(bool $getShared = true): \dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface
     {

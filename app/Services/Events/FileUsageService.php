@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Events;
 
-use CodeIgniter\Database\BaseConnection;
+use App\Models\EventModel;
 
 /**
  * Reports all events rows that reference a given Hub file ID, via
@@ -13,19 +13,20 @@ use CodeIgniter\Database\BaseConnection;
  * cms-domain's FileUsageService established, so the Hub's
  * DomainFileUsageClient can merge results from every domain uniformly.
  *
+ * Queries through EventModel::findReferencingHubFile() rather than the raw
+ * query builder (LAYER-03) — cms-domain's and catalog-domain's sibling
+ * services still query their table directly via BaseConnection; that wasn't
+ * changed here since it's out of scope for this app.
+ *
  * @phpstan-type UsageItem array{source: string, resource: string, resource_id: int, role: string, label: string|null}
  */
 class FileUsageService
 {
-    /** @var BaseConnection<mixed, mixed> */
-    private BaseConnection $db;
+    private EventModel $eventModel;
 
-    /**
-     * @param BaseConnection<mixed, mixed> $db
-     */
-    public function __construct(BaseConnection $db)
+    public function __construct(EventModel $eventModel)
     {
-        $this->db = $db;
+        $this->eventModel = $eventModel;
     }
 
     /**
@@ -33,20 +34,7 @@ class FileUsageService
      */
     public function getUsagesByHubFileId(int $hubFileId): array
     {
-        // gallery_file_ids is a plain CSV column (no FIND_IN_SET/JSON index),
-        // so a SQL substring match would false-positive (file 1 matching
-        // "21" or "12,1"). Narrow with a cheap SQL prefilter (candidates
-        // whose CSV *contains the digits somewhere*, or whose cover matches
-        // exactly), then verify exact membership in PHP.
-        $result = $this->db->table('events')
-            ->select('id, title, cover_file_id, gallery_file_ids')
-            ->where('deleted_at', null)
-            ->groupStart()
-                ->where('cover_file_id', $hubFileId)
-                ->orLike('gallery_file_ids', (string) $hubFileId, 'both')
-            ->groupEnd()
-            ->get();
-        $rows = $result ? $result->getResultArray() : [];
+        $rows = $this->eventModel->findReferencingHubFile($hubFileId);
 
         $usages = [];
         foreach ($rows as $row) {
