@@ -177,6 +177,14 @@ trait EventsDomainServices
         }
         return new \App\Services\Events\FileUsageService(model(\App\Models\EventModel::class));
     }
+
+    public static function eventMediaResolutionService(bool $getShared = true): \App\Services\Events\EventMediaResolutionService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('eventMediaResolutionService');
+        }
+        return new \App\Services\Events\EventMediaResolutionService(static::hubClient());
+    }
     public static function eventTypeResponseMapper(bool $getShared = true): \dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface
     {
         if ($getShared) {

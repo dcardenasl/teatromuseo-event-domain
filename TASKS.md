@@ -3,7 +3,7 @@
 > Fuente de verdad para trabajo en este repo.
 > Historial de completadas: ver `TASKS_ARCHIVE.md`.
 > Cross-repo: ver `../TASKS.md`.
-> Última actualización: 2026-08-06 (CORE-01/02/03 + LAYER-03 + LAYER-04 completadas)
+> Última actualización: 2026-08-07 (LAYER-01 completada)
 
 ---
 
@@ -49,18 +49,7 @@
 
 ### Fase 4 — Coherencia de capas
 
-- [ ] **LAYER-01 — `Controllers/Api/V1/Events/PublicEventController.php` — 2 de 4 reglas
-  corregidas, 2 siguen abiertas (verificado 2026-08-06).** Ya resuelto (trabajo previo sin
-  commitear, no de esta pasada): (1) `index()` ya no muta el superglobal de la petición — el
-  filtro `status=published` y el orden especial de cartelera viven en
-  `EventService::indexPublicCartelera()`; (4) `show()` ya no recibe `$dto` sin usar
-  (`fn (mixed $_, SecurityContext $context)`). **Siguen abiertos**, no tocados en esta pasada
-  (fuera del alcance de LAYER-03/04, requieren su propia decisión de diseño): (2)
-  `resolveMediaFields()` sigue llamando a `Services::hubClient()` desde el controlador; (3)
-  sigue siendo ~55 líneas **byte-idénticas** a
-  `PublicCollectionItemController::resolveMediaFields()` de catalog-domain (mismo defecto
-  ahí también, no exclusivo de este repo — difieren solo en el nombre de variable
-  `$event`/`$item`).
+- [x] ~~LAYER-01~~ — **completado 2026-08-07.** Ver Completadas.
 - [x] ~~LAYER-03~~ — **completado 2026-08-06.** Ver Completadas.
 - [x] ~~LAYER-04~~ — **completado 2026-08-06.** Ver Completadas.
 - [x] ~~LAYER-06~~ — **verificado ya resuelto 2026-08-06** (checkbox desactualizado, trabajo
@@ -93,6 +82,42 @@
 ---
 
 ## ✅ Completadas
+
+### LAYER-01 — `PublicEventController::resolveMediaFields()` extraído a un servicio (2026-08-07)
+
+- **Los 2 sub-problemas que quedaban abiertos (verificados 2026-08-06) están resueltos.**
+  `resolveMediaFields()` (~55 líneas: resuelve `cover_file_id`/`gallery_file_ids` a metadata de
+  archivo del Hub) salió del controlador hacia `App\Services\Events\EventMediaResolutionService`
+  nueva, con `HubClient` inyectado por constructor — el controlador ya no llama
+  `Services::hubClient()` en ningún punto (verificado por `grep`, no queda ninguna referencia).
+  El servicio se registra en `EventsDomainServices::eventMediaResolutionService()` como clase
+  concreta (sin interfaz), el mismo patrón que ya usaba el `FileUsageService` hermano — un
+  servicio utilitario pequeño con un solo colaborador, no el patrón CRUD con interfaz de
+  `EventService`/`TicketTypeService`. `PublicEventController` ahora resuelve
+  `$this->mediaResolutionService` en `resolveDefaultService()` junto al `eventService` existente.
+- **Duplicación cross-repo con catalog-domain (sub-problema original #3): verificado que
+  catalog-domain NO tiene esta extracción hecha tampoco** —
+  `PublicCollectionItemController::resolveMediaFields()` sigue llamando `Services::hubClient()`
+  inline, byte-idéntica a como estaba event-domain antes de este fix (confirmado leyendo el
+  archivo, solo de lectura, no se tocó). El `FileUsageService` de catalog-domain es una clase
+  distinta y no relacionada (reporta usos de un file ID para el endpoint interno de auditoría de
+  archivos, LAYER-03) — no es un precedente a espejar aquí. Por lo tanto la extracción de este
+  repo queda **standalone**, sin coordinación cross-repo (no se creó ningún path-repository ni se
+  tocó `ci4-api-core`, por instrucción explícita). **Pendiente en catalog-domain**: aplicar la
+  misma extracción allá (`PublicCollectionItemController::resolveMediaFields()` →
+  `App\Services\Catalog\CollectionItemMediaResolutionService` o nombre equivalente, mismo patrón
+  de `FileUsageService`) — queda fuera del alcance de este repo, no se tocó
+  `teatromuseo-catalog-domain`.
+- **Tests nuevos**: `tests/Unit/Services/Events/EventMediaResolutionServiceTest.php` (4 casos,
+  puro con `HubClient` mockeado — sin ir a caso de sin-IDs, cover+gallery con metadata mixta
+  (variants como array/null/JSON-string), metadata ausente, e IDs de galería inválidos/CSV con
+  ruido). `tests/Feature/Controllers/Events/PublicEventControllerTest.php` no cambió — sus fixtures
+  no usan `cover_file_id`/`gallery_file_ids`, así que ya ejercitaban el camino sin llamar al Hub y
+  siguen pasando sin cambios.
+- **Verificado**: `composer phpstan` ✅ (nivel 8, sin errores), `composer cs-check` ✅, 243 tests /
+  602 assertions / 1 skip ✅ (+4 tests / +12 assertions sobre el baseline de 239/590 — exactamente
+  los 4 tests nuevos del servicio), 17 tests de arquitectura ✅, `swagger-validate` ✅ (sin diff —
+  el contrato público no cambió, mismo shape de respuesta), `i18n-check`/`docs-i18n-check` ✅.
 
 ### LAYER-03 + LAYER-04 + verificación LAYER-01/LAYER-06 — Fase 4, coherencia de capas (2026-08-06)
 

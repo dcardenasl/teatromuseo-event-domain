@@ -7,6 +7,7 @@ namespace App\Controllers\Api\V1\Events;
 use App\DTO\Request\Events\EventIndexRequestDTO;
 use App\DTO\Request\Events\EventTypeIndexRequestDTO;
 use App\Interfaces\Events\EventServiceInterface;
+use App\Services\Events\EventMediaResolutionService;
 use CodeIgniter\HTTP\ResponseInterface;
 use Config\Services;
 use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
@@ -17,9 +18,12 @@ class PublicEventController extends ApiController
 {
     protected EventServiceInterface $eventService;
 
+    protected EventMediaResolutionService $mediaResolutionService;
+
     protected function resolveDefaultService(): EventServiceInterface
     {
         $this->eventService = Services::eventService();
+        $this->mediaResolutionService = Services::eventMediaResolutionService();
 
         return $this->eventService;
     }
@@ -31,7 +35,7 @@ class PublicEventController extends ApiController
     public function show(string $idOrSlug): ResponseInterface
     {
         return $this->handleRequest(
-            fn (mixed $_, SecurityContext $context): mixed => $this->resolveMediaFields(
+            fn (mixed $_, SecurityContext $context): mixed => $this->mediaResolutionService->resolveMediaFields(
                 $this->eventService->getPublicByIdOrSlug($idOrSlug)
             )
         );
@@ -48,7 +52,7 @@ class PublicEventController extends ApiController
                         $eventArray = $event instanceof DataTransferObjectInterface
                             ? $event->toArray()
                             : (array) $event;
-                        $result['data'][$key] = $this->resolveMediaFields($eventArray);
+                        $result['data'][$key] = $this->mediaResolutionService->resolveMediaFields($eventArray);
                     }
                 }
 
@@ -73,68 +77,5 @@ class PublicEventController extends ApiController
                 ])
             );
         });
-    }
-
-    /**
-     * Helper to resolve cover image and gallery file IDs to Hub file metadata.
-     *
-     * @param  array<string, mixed>  $event
-     * @return array<string, mixed>
-     */
-    private function resolveMediaFields(array $event): array
-    {
-        $hub = Services::hubClient();
-
-        $fileIds = [];
-        if (isset($event['cover_file_id']) && (int) $event['cover_file_id'] > 0) {
-            $fileIds[] = (int) $event['cover_file_id'];
-        }
-
-        $galleryIds = [];
-        if (isset($event['gallery_file_ids']) && is_string($event['gallery_file_ids']) && trim($event['gallery_file_ids']) !== '') {
-            $rawIds = explode(',', $event['gallery_file_ids']);
-            foreach ($rawIds as $rawId) {
-                $id = (int) trim($rawId);
-                if ($id > 0) {
-                    $fileIds[] = $id;
-                    $galleryIds[] = $id;
-                }
-            }
-        }
-
-        $metaMap = [];
-        if (!empty($fileIds)) {
-            $metaMap = $hub->resolvePublicFileMeta($fileIds);
-        }
-
-        $event['cover_image'] = null;
-        if (isset($event['cover_file_id']) && (int) $event['cover_file_id'] > 0) {
-            $fileId = (int) $event['cover_file_id'];
-            $meta = $metaMap[$fileId] ?? null;
-            if ($meta) {
-                $event['cover_image'] = [
-                    'source_kind' => 'hub_file',
-                    'file_id'     => $fileId,
-                    'url'         => $meta['url'] ?? null,
-                    'variants'    => is_string($meta['variants'] ?? null) ? json_decode($meta['variants'], true) : ($meta['variants'] ?? null),
-                ];
-            }
-        }
-
-        $gallery = [];
-        foreach ($galleryIds as $fileId) {
-            $meta = $metaMap[$fileId] ?? null;
-            if ($meta) {
-                $gallery[] = [
-                    'source_kind' => 'hub_file',
-                    'file_id'     => $fileId,
-                    'url'         => $meta['url'] ?? null,
-                    'variants'    => is_string($meta['variants'] ?? null) ? json_decode($meta['variants'], true) : ($meta['variants'] ?? null),
-                ];
-            }
-        }
-        $event['gallery_images'] = $gallery;
-
-        return $event;
     }
 }
