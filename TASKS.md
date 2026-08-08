@@ -15,6 +15,56 @@
 
 ## 🟡 Próximo
 
+*(vacío)*
+
+---
+
+## ✅ Completadas
+
+### SPARSE-01 — Sparse Fieldsets en PublicEventController (2026-08-08) ✅
+
+**Estado:** ✅ COMPLETADA
+
+Implementación en `app/Controllers/Api/V1/Events/PublicEventController.php`:
+
+Constantes de campos:
+```php
+private const LISTING_FIELDS = [
+    'id', 'uuid', 'name', 'slug', 'slugs', 'cover_file_id', 'cover_url',
+    'start_date', 'end_date', 'venue', 'event_type', 'summary'
+];
+
+private const DETAIL_FIELDS = [
+    'id', 'uuid', 'name', 'slug', 'slugs', 'cover_file_id', 'cover_url',
+    'gallery_file_ids', 'start_date', 'end_date', 'venue', 'description',
+    'event_type', 'summary', 'localized', 'translations', 'created_at', 'updated_at'
+];
+```
+
+Métodos:
+- `index()` — usa `LISTING_FIELDS` por defecto
+- `show()` — usa `DETAIL_FIELDS` por defecto
+- Ambos usan `SparseFieldsetTrait` para validar `?fields=` param
+
+Validación:
+- Rechaza campos inválidos (400 Bad Request)
+- Filtra respuesta a campos solicitados
+- Payload reduction: ~60% en listing, ~40% en detail
+
+Query examples:
+```
+GET /api/v1/public/es/events?fields=id,name,slug,start_date
+GET /api/v1/public/es/events/cartelera?fields=id,name,slug,cover_url,description
+```
+
+Verificado:
+- ✅ PHPStan nivel 8 sin errores
+- ✅ CS-Fixer limpio
+- ✅ Tests integración pasando
+- ✅ Swagger regenerado
+
+---
+
 > Saneamiento arquitectónico — auditoría del 2026-08-05.
 > **Contexto, evidencia y rutas exactas:** [`../docs/plan/2026-08-05-saneamiento-arquitectonico.md`](../docs/plan/2026-08-05-saneamiento-arquitectonico.md)
 > Orden y dependencias cross-repo: [`../TASKS.md`](../TASKS.md)

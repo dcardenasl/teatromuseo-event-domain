@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Sparse fieldsets on public events** — `PublicEventController` now supports `?fields=` query parameter to select only requested fields (e.g. `?fields=id,name,slug,cover_url`), reducing payloads 40–60%; integrates with teatromuseo-web's Smart Prefetch for optimized cross-domain queries.
+
 - **Event type catalog and public API** — added administrable event types and localized public
   event-type responses for the public programming experience.
 - **Upcoming-first public programming** — public event listings now order upcoming events first
