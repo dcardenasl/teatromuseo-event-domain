@@ -13,9 +13,22 @@ use Config\Services;
 use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
 use dcardenasl\Ci4ApiCore\Dto\SecurityContext;
 use dcardenasl\Ci4ApiCore\Http\ApiController;
+use dcardenasl\Ci4ApiCore\Traits\SparseFieldsetTrait;
 
 class PublicEventController extends ApiController
 {
+    use SparseFieldsetTrait;
+
+    private const LISTING_FIELDS = [
+        'id', 'uuid', 'title', 'event_type', 'slug', 'cover_file_id',
+        'cover_image', 'translations', 'localized', 'status',
+    ];
+
+    private const DETAIL_FIELDS = [
+        'id', 'uuid', 'title', 'event_type', 'slug', 'slugs', 'cover_file_id',
+        'cover_image', 'gallery_file_ids', 'gallery_images', 'description',
+        'translations', 'localized', 'occurrences', 'status', 'created_at', 'updated_at',
+    ];
     protected EventServiceInterface $eventService;
 
     protected EventMediaResolutionService $mediaResolutionService;
@@ -35,9 +48,12 @@ class PublicEventController extends ApiController
     public function show(string $idOrSlug): ResponseInterface
     {
         return $this->handleRequest(
-            fn (mixed $_, SecurityContext $context): mixed => $this->mediaResolutionService->resolveMediaFields(
-                $this->eventService->getPublicByIdOrSlug($idOrSlug)
-            )
+            function (mixed $_, SecurityContext $context) use ($idOrSlug): mixed {
+                $fields = $this->parseFieldsParam(self::DETAIL_FIELDS);
+                $data = $this->eventService->getPublicByIdOrSlug($idOrSlug);
+                $resolved = $this->mediaResolutionService->resolveMediaFields($data);
+                return $this->sparseFilter($resolved, $fields);
+            }
         );
     }
 
@@ -45,6 +61,7 @@ class PublicEventController extends ApiController
     {
         return $this->handleRequest(
             function (EventIndexRequestDTO $dto, SecurityContext $context): mixed {
+                $fields = $this->parseFieldsParam(self::LISTING_FIELDS);
                 $result = $this->eventService->indexPublicCartelera($dto, $context)->toArray();
 
                 if (is_array($result['data'] ?? null)) {
@@ -52,7 +69,8 @@ class PublicEventController extends ApiController
                         $eventArray = $event instanceof DataTransferObjectInterface
                             ? $event->toArray()
                             : (array) $event;
-                        $result['data'][$key] = $this->mediaResolutionService->resolveMediaFields($eventArray);
+                        $resolved = $this->mediaResolutionService->resolveMediaFields($eventArray);
+                        $result['data'][$key] = $this->sparseFilter($resolved, $fields);
                     }
                 }
 
