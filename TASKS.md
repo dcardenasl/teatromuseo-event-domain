@@ -76,8 +76,7 @@
   `DTO/{Request,Response}/{Demo,Example}/`, `Libraries/{Security,Queue/Jobs}/`.
   Corregir también `declare (strict_types=1);` (con espacio) en
   `app/Config/Routes/v1/events.php:3` — php-cs-fixer no pasa por los archivos de ruta generados.
-- [ ] **DOC-01 — Crear el `AGENTS.md` que falta** en este repo (existe en bff, catalog, cms y
-  tótem; el `AGENTS.md` raíz ni siquiera lista a esta app).
+- [x] ~~DOC-01~~ — **completado (2026-08-07).** Creado `AGENTS.md` en la raíz del repo.
 
 ---
 
