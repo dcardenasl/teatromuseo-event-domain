@@ -45,6 +45,7 @@ class Filters extends BaseFilters
         'domainauth'         => \App\Filters\DomainAuthFilter::class,
         'webappkey'          => \App\Filters\WebAppKeyRequiredFilter::class,
         'hubsignature'       => \App\Filters\HubSignatureFilter::class,
+        'publicTelemetry'    => \App\Filters\PublicReadTelemetryFilter::class,
         'throttle'           => ThrottleFilter::class,
         'permission'         => PermissionFilter::class,
         'requestLogging'    => RequestLoggingFilter::class,
@@ -78,6 +79,7 @@ class Filters extends BaseFilters
         'before' => [
             'maintenance',
             'correlationid',
+            'publicTelemetry',
             'locale',
             'cors',
             'invalidchars',
@@ -87,6 +89,7 @@ class Filters extends BaseFilters
             'secureheaders',
             'deprecationheaders',
             'correlationid',
+            'publicTelemetry',
             'requestLogging' => ['except' => ['health', 'ping', 'ready', 'live']],
         ],
     ];
