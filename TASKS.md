@@ -15,7 +15,23 @@
 
 ## 🟡 Próximo
 
-*(vacío)*
+### Programa cross-repo — Events PublicRead
+
+Fuente de verdad: [plan de entrega pública](../docs/plan/2026-08-09-entrega-publica-read-model-page-delivery.md) y
+[tracker raíz](../TASKS.md). No modificar los endpoints CRUD del administrador;
+leer la sección 8 del plan antes de implementar.
+
+- [ ] **PUB-00** — Baseline HTTP ejecutado; la capacidad beta queda pendiente de
+  métricas del hosting (PHP-FPM, MySQL, caché y upstream 508) en el tracker raíz.
+- [x] **PUB-01/PUB-02** — Contratos, gobierno, observabilidad y budgets completados
+  en el tracker raíz.
+- [ ] **EVT-01** — Estructura del módulo Events PublicRead.
+- [ ] **EVT-02** — Cartelera set-based en SQL.
+- [ ] **EVT-03** — Detail público y medios batch.
+- [ ] **SHARED-01** — Cliente de medios batch y policy foreground.
+- [ ] **QA-01/QA-02** — Contract tests, OpenAPI, EXPLAIN, índices y budgets SQL.
+- [ ] **CACHE-03** — Invalidación y regeneración asíncrona cuando el dominio
+  participe en el evento/outbox de publicación.
 
 ---
 
