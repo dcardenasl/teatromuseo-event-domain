@@ -9,7 +9,9 @@
 
 ## 🔴 En progreso
 
-*(vacío)*
+- [ ] **QA-01/QA-02** — Contract tests, OpenAPI, EXPLAIN, índices y budgets SQL.
+  La implementación de Events PublicRead y SHARED-01 quedó completada; esta
+  verificación cross-repo permanece pendiente.
 
 ---
 
@@ -25,10 +27,10 @@ leer la sección 8 del plan antes de implementar.
   métricas del hosting (PHP-FPM, MySQL, caché y upstream 508) en el tracker raíz.
 - [x] **PUB-01/PUB-02** — Contratos, gobierno, observabilidad y budgets completados
   en el tracker raíz.
-- [ ] **EVT-01** — Estructura del módulo Events PublicRead.
-- [ ] **EVT-02** — Cartelera set-based en SQL.
-- [ ] **EVT-03** — Detail público y medios batch.
-- [ ] **SHARED-01** — Cliente de medios batch y policy foreground.
+- [x] **EVT-01** — Estructura del módulo Events PublicRead.
+- [x] **EVT-02** — Cartelera set-based en SQL.
+- [x] **EVT-03** — Detail público y medios batch.
+- [x] **SHARED-01** — Cliente de medios batch y policy foreground.
 - [ ] **QA-01/QA-02** — Contract tests, OpenAPI, EXPLAIN, índices y budgets SQL.
 - [ ] **CACHE-03** — Invalidación y regeneración asíncrona cuando el dominio
   participe en el evento/outbox de publicación.
