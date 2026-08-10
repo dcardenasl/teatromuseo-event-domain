@@ -6,6 +6,7 @@ namespace App\Services\Events;
 
 use App\Entities\OccurrenceEntity;
 use App\Interfaces\Events\OccurrenceServiceInterface;
+use App\Interfaces\PublicCacheInvalidationNotifierInterface;
 use DateTimeImmutable;
 use DateTimeZone;
 use dcardenasl\Ci4ApiCore\Exceptions\BadRequestException;
@@ -26,7 +27,8 @@ class OccurrenceService extends BaseCrudService implements OccurrenceServiceInte
     public function __construct(
         RepositoryInterface $occurrenceRepository,
         ResponseMapperInterface $responseMapper,
-        string $scheduleTimezone = 'America/Santiago'
+        string $scheduleTimezone,
+        private readonly PublicCacheInvalidationNotifierInterface $cacheInvalidator,
     ) {
         parent::__construct($occurrenceRepository, $responseMapper);
         $this->scheduleTimezone = new DateTimeZone($scheduleTimezone);
@@ -40,6 +42,24 @@ class OccurrenceService extends BaseCrudService implements OccurrenceServiceInte
         $this->assertChronology($data['start_time'], $data['end_time']);
 
         return $data;
+    }
+
+    protected function afterStore(object $entity, ?\dcardenasl\Ci4ApiCore\Dto\SecurityContext $context): void
+    {
+        parent::afterStore($entity, $context);
+        $this->cacheInvalidator->invalidate(['events']);
+    }
+
+    protected function afterUpdate(object $entity, ?\dcardenasl\Ci4ApiCore\Dto\SecurityContext $context): void
+    {
+        parent::afterUpdate($entity, $context);
+        $this->cacheInvalidator->invalidate(['events']);
+    }
+
+    protected function afterDelete(object $entity, ?\dcardenasl\Ci4ApiCore\Dto\SecurityContext $context): void
+    {
+        parent::afterDelete($entity, $context);
+        $this->cacheInvalidator->invalidate(['events']);
     }
 
     /** @param array<string, mixed> $data @return array<string, mixed> */

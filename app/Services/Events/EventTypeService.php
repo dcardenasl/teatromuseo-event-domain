@@ -6,6 +6,7 @@ namespace App\Services\Events;
 
 use App\Entities\EventTypeEntity;
 use App\Interfaces\Events\EventTypeServiceInterface;
+use App\Interfaces\PublicCacheInvalidationNotifierInterface;
 use App\Models\EventPublicSlugModel;
 use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
 use dcardenasl\Ci4ApiCore\Dto\SecurityContext;
@@ -41,7 +42,8 @@ class EventTypeService extends BaseCrudService implements EventTypeServiceInterf
         ResponseMapperInterface $responseMapper,
         LocalizedTranslationStore $translationStore,
         PublicSlugStore $slugStore,
-        private EventPublicSlugModel $publicSlugModel
+        private EventPublicSlugModel $publicSlugModel,
+        private readonly PublicCacheInvalidationNotifierInterface $cacheInvalidator,
     ) {
         parent::__construct($eventTypeRepository, $responseMapper);
         $this->translationStore = $translationStore;
@@ -82,6 +84,7 @@ class EventTypeService extends BaseCrudService implements EventTypeServiceInterf
     {
         $this->localizedAfterStore($entity, $context);
         $this->syncPublicSlugs($entity);
+        $this->cacheInvalidator->invalidate(['event_types', 'events']);
     }
 
     /** @param array<string, mixed> $data */
@@ -96,6 +99,13 @@ class EventTypeService extends BaseCrudService implements EventTypeServiceInterf
     {
         $this->localizedAfterUpdate($entity, $context);
         $this->syncPublicSlugs($entity);
+        $this->cacheInvalidator->invalidate(['event_types', 'events']);
+    }
+
+    protected function afterDelete(object $entity, ?SecurityContext $context): void
+    {
+        parent::afterDelete($entity, $context);
+        $this->cacheInvalidator->invalidate(['event_types', 'events']);
     }
 
     /** @param array<int, object> $entities */

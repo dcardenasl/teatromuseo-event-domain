@@ -7,6 +7,7 @@ namespace App\Services\Events;
 use App\Entities\EventEntity;
 use App\Interfaces\Events\EventServiceInterface;
 use App\Interfaces\Events\OccurrenceRepositoryInterface;
+use App\Interfaces\PublicCacheInvalidationNotifierInterface;
 use DateTimeImmutable;
 use DateTimeZone;
 use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
@@ -48,7 +49,8 @@ class EventService extends BaseCrudService implements EventServiceInterface
         LocalizedTranslationStore $translationStore,
         PublicSlugStore $slugStore,
         OccurrenceRepositoryInterface $occurrenceRepository,
-        string $scheduleTimezone = 'America/Santiago',
+        string $scheduleTimezone,
+        private readonly PublicCacheInvalidationNotifierInterface $cacheInvalidator,
     ) {
         parent::__construct($eventRepository, $responseMapper);
         $this->translationStore = $translationStore;
@@ -110,6 +112,7 @@ class EventService extends BaseCrudService implements EventServiceInterface
     {
         $this->localizedAfterStore($entity, $context);
         $this->syncPublicSlugs($entity);
+        $this->cacheInvalidator->invalidate(['events']);
     }
 
     /**
@@ -127,6 +130,13 @@ class EventService extends BaseCrudService implements EventServiceInterface
     {
         $this->localizedAfterUpdate($entity, $context);
         $this->syncPublicSlugs($entity);
+        $this->cacheInvalidator->invalidate(['events']);
+    }
+
+    protected function afterDelete(object $entity, ?SecurityContext $context): void
+    {
+        parent::afterDelete($entity, $context);
+        $this->cacheInvalidator->invalidate(['events']);
     }
 
     /**
