@@ -119,6 +119,62 @@ final class PublicEventControllerTest extends CIUnitTestCase
         $this->assertSame(['Mañana', 'En un mes', 'Ayer', 'Hace una semana', 'Hace un año'], $titles);
     }
 
+    public function testPublicReadListingUsesVersionedEnvelopeAndSqlOccurrenceProjection(): void
+    {
+        $this->createEvent('PublicRead Agenda', 'published');
+
+        $result = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])
+            ->get('/api/v1/public-read/es/events?fields=id,title,next_occurrence_at');
+
+        $result->assertStatus(200);
+        $body = json_decode((string) $result->getJSON(), true);
+        $this->assertTrue($body['ok'] ?? false);
+        $this->assertSame(1, $body['version'] ?? null);
+        $this->assertSame('events', $body['source']['domain'] ?? null);
+        $this->assertSame('PublicRead Agenda', $body['data'][0]['title'] ?? null);
+        $this->assertNotEmpty($body['data'][0]['next_occurrence_at'] ?? null);
+    }
+
+    public function testPublicReadListingRejectsMissingAppKey(): void
+    {
+        $result = $this->get('/api/v1/public-read/es/events');
+
+        $result->assertStatus(401);
+    }
+
+    public function testPublicReadAgendaOrdersFutureAscendingThenPastDescending(): void
+    {
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->createEvent('Read Hace un año', 'published', $now->modify('-1 year')->format('Y-m-d H:i:s'));
+        $this->createEvent('Read Mañana', 'published', $now->modify('+1 day')->format('Y-m-d H:i:s'));
+        $this->createEvent('Read Ayer', 'published', $now->modify('-1 day')->format('Y-m-d H:i:s'));
+        $this->createEvent('Read En un mes', 'published', $now->modify('+1 month')->format('Y-m-d H:i:s'));
+
+        $result = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])
+            ->get('/api/v1/public-read/es/events?fields=title');
+
+        $result->assertStatus(200);
+        $body = json_decode((string) $result->getJSON(), true);
+        $this->assertSame(
+            ['Read Mañana', 'Read En un mes', 'Read Ayer', 'Read Hace un año'],
+            array_column($body['data'] ?? [], 'title'),
+        );
+    }
+
+    public function testPublicReadDetailUsesUuidAndReturnsCanonicalEnvelope(): void
+    {
+        $event = $this->createEvent('PublicRead Detail', 'published');
+
+        $result = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])
+            ->get('/api/v1/public-read/es/events/' . $event['uuid']);
+
+        $result->assertStatus(200);
+        $body = json_decode((string) $result->getJSON(), true);
+        $this->assertTrue($body['ok'] ?? false);
+        $this->assertSame((int) $event['id'], $body['data']['id'] ?? null);
+        $this->assertNotEmpty($body['data']['occurrences'] ?? []);
+    }
+
     public function testShowResolvesTheGeneratedSlug(): void
     {
         $created = $this->createEvent('Función Viva', 'published');

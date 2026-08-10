@@ -969,6 +969,148 @@
                 }
             }
         },
+        "/api/v1/public-read/{locale}/events": {
+            "get": {
+                "tags": [
+                    "Public Read - Events"
+                ],
+                "summary": "List published events with SQL ordering",
+                "operationId": "1e30ee32b24fabeea842c57ab74da540",
+                "parameters": [
+                    {
+                        "name": "locale",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "event_type",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "agenda",
+                                "latest",
+                                "id",
+                                "title"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "fields",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "PublicRead envelope"
+                    },
+                    "401": {
+                        "description": "Missing or invalid X-App-Key"
+                    },
+                    "422": {
+                        "description": "Invalid query"
+                    }
+                }
+            }
+        },
+        "/api/v1/public-read/{locale}/events/{idOrSlug}": {
+            "get": {
+                "tags": [
+                    "Public Read - Events"
+                ],
+                "summary": "Get one published event",
+                "operationId": "7c0a85b9b0c4b63175ea235912f70bcb",
+                "parameters": [
+                    {
+                        "name": "locale",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "idOrSlug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fields",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "PublicRead envelope"
+                    },
+                    "401": {
+                        "description": "Missing or invalid X-App-Key"
+                    },
+                    "404": {
+                        "description": "Not found or not published"
+                    }
+                }
+            }
+        },
         "/api/v1/events/tickets": {
             "get": {
                 "tags": [
@@ -3063,6 +3205,10 @@
         {
             "name": "Public Events",
             "description": "Public Events"
+        },
+        {
+            "name": "Public Read - Events",
+            "description": "Public Read - Events"
         }
     ]
 }
