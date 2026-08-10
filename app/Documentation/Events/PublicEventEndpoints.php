@@ -16,6 +16,7 @@ class PublicEventEndpoints
         tags: ['Public Events'],
         summary: 'List active event types for public filters',
         description: 'Returns the administrable event-type catalogue with localized names. Only active types are exposed.',
+        security: [['appKeyAuth' => []]],
         responses: [
             new OA\Response(
                 response: 200,
@@ -44,6 +45,7 @@ class PublicEventEndpoints
         tags: ['Public Events'],
         summary: 'List published events for the public site',
         description: 'Requires the X-App-Key header bound to the web application. Only published events are returned; localized content follows Accept-Language.',
+        security: [['appKeyAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'page', in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
             new OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', maximum: 100)),
@@ -78,6 +80,7 @@ class PublicEventEndpoints
         tags: ['Public Events'],
         summary: 'Get a published event by id, uuid, or per-locale routing slug',
         description: 'Slug resolution prefers the Accept-Language locale and falls back to any locale, so shared URLs keep working across languages.',
+        security: [['appKeyAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'idOrSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
         ],

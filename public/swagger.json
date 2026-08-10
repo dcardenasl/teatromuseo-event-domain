@@ -856,7 +856,12 @@
                     "401": {
                         "description": "Missing or invalid X-App-Key"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "appKeyAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/public/events": {
@@ -928,7 +933,12 @@
                     "401": {
                         "description": "Missing or invalid X-App-Key"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "appKeyAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/public/events/{idOrSlug}": {
@@ -966,7 +976,12 @@
                     "404": {
                         "description": "Not found or not published"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "appKeyAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/public-read/{locale}/events": {
@@ -1055,7 +1070,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "PublicRead envelope"
+                        "description": "PublicRead envelope",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PublicReadEnvelope"
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "description": "Missing or invalid X-App-Key"
@@ -1063,7 +1085,12 @@
                     "422": {
                         "description": "Invalid query"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "appKeyAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/public-read/{locale}/events/{idOrSlug}": {
@@ -1100,7 +1127,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "PublicRead envelope"
+                        "description": "PublicRead envelope",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PublicReadEnvelope"
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "description": "Missing or invalid X-App-Key"
@@ -1108,7 +1142,12 @@
                     "404": {
                         "description": "Not found or not published"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "appKeyAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/events/tickets": {
@@ -1785,6 +1824,64 @@
     },
     "components": {
         "schemas": {
+            "PublicReadEnvelope": {
+                "required": [
+                    "version",
+                    "ok",
+                    "data",
+                    "meta",
+                    "source",
+                    "messages"
+                ],
+                "properties": {
+                    "version": {
+                        "description": "Machine-readable minimum envelope shared by Events PublicRead responses.",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "ok": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "nullable": true
+                    },
+                    "meta": {
+                        "type": "object"
+                    },
+                    "source": {
+                        "required": [
+                            "domain",
+                            "state",
+                            "stale"
+                        ],
+                        "properties": {
+                            "domain": {
+                                "type": "string",
+                                "example": "events"
+                            },
+                            "state": {
+                                "type": "string",
+                                "enum": [
+                                    "fresh",
+                                    "stale",
+                                    "unavailable"
+                                ]
+                            },
+                            "stale": {
+                                "type": "boolean"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "messages": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "type": "object"
+            },
             "BookingCreateRequest": {
                 "properties": {
                     "uuid": {
