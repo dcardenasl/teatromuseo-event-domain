@@ -220,6 +220,41 @@ trait EventsDomainServices
             static::localizedTranslationStore(),
             static::publicSlugStore(),
             new \App\Models\EventPublicSlugModel(),
+            static::publicCacheInvalidationNotifier(),
+        );
+    }
+
+    public static function cacheInvalidationOutbox(bool $getShared = true): \App\Libraries\PublicCache\CacheInvalidationOutbox
+    {
+        if ($getShared) {
+            return static::getSharedInstance('cacheInvalidationOutbox');
+        }
+
+        return new \App\Libraries\PublicCache\CacheInvalidationOutbox(\Config\Database::connect());
+    }
+
+    public static function publicCacheInvalidationNotifier(bool $getShared = true): \App\Interfaces\PublicCacheInvalidationNotifierInterface
+    {
+        if ($getShared) {
+            return static::getSharedInstance('publicCacheInvalidationNotifier');
+        }
+
+        return new \App\Libraries\PublicCache\PublicCacheInvalidationNotifier(static::cacheInvalidationOutbox());
+    }
+
+    public static function cacheInvalidationOutboxDispatcher(bool $getShared = true): \App\Libraries\PublicCache\CacheInvalidationOutboxDispatcher
+    {
+        if ($getShared) {
+            return static::getSharedInstance('cacheInvalidationOutboxDispatcher');
+        }
+
+        return new \App\Libraries\PublicCache\CacheInvalidationOutboxDispatcher(
+            static::cacheInvalidationOutbox(),
+            new \App\Libraries\PublicCache\CacheInvalidationHttpClient(
+                (string) env('WEB_CACHE_INVALIDATE_URL', ''),
+                (string) env('WEB_CACHE_INVALIDATE_KEY', ''),
+                max(1, min(10, (int) env('WEB_CACHE_INVALIDATE_TIMEOUT', 5))),
+            ),
         );
     }
 }
