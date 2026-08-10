@@ -32,8 +32,10 @@ leer la sección 8 del plan antes de implementar.
 - [x] **EVT-03** — Detail público y medios batch.
 - [x] **SHARED-01** — Cliente de medios batch y policy foreground.
 - [ ] **QA-01/QA-02** — Contract tests, OpenAPI, EXPLAIN, índices y budgets SQL.
-- [ ] **CACHE-03** — Invalidación y regeneración asíncrona cuando el dominio
-  participe en el evento/outbox de publicación.
+- [x] **CACHE-03** — Invalidación y regeneración asíncrona completada (2026-08-09).
+  Las mutaciones públicas de eventos, tipos, ocurrencias y recintos registran
+  un outbox transaccional; `cache:dispatch-outbox` entrega a Web con lease,
+  reintentos e idempotencia. No se hace HTTP durante el request de escritura.
 
 ---
 
