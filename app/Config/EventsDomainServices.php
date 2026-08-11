@@ -6,6 +6,22 @@ namespace Config;
 
 trait EventsDomainServices
 {
+    public static function eventListRepository(bool $getShared = true): \App\Interfaces\Events\AdminListProjectionRepositoryInterface
+    {
+        if ($getShared) {
+            return static::getSharedInstance('eventListRepository');
+        }
+        return new \App\Repositories\Events\EventListRepository(model(\App\Models\EventModel::class), \Config\Database::connect());
+    }
+
+    public static function eventTypeListRepository(bool $getShared = true): \App\Interfaces\Events\AdminListProjectionRepositoryInterface
+    {
+        if ($getShared) {
+            return static::getSharedInstance('eventTypeListRepository');
+        }
+        return new \App\Repositories\Events\EventTypeListRepository(model(\App\Models\EventTypeModel::class), \Config\Database::connect());
+    }
+
     public static function dashboardSummaryService(bool $getShared = true): \App\Services\Admin\DashboardSummaryService
     {
         if ($getShared) {
@@ -95,6 +111,7 @@ trait EventsDomainServices
             new \App\Repositories\Events\OccurrenceRepository(new \App\Models\OccurrenceModel()),
             (string) env('EVENT_SCHEDULE_TIMEZONE', config('App')->eventScheduleTimezone),
             static::publicCacheInvalidationNotifier(),
+            static::eventListRepository(),
         );
     }
     public static function ticketTypeResponseMapper(bool $getShared = true): \dcardenasl\Ci4ApiCore\Mappers\ResponseMapperInterface
@@ -230,6 +247,7 @@ trait EventsDomainServices
             static::publicSlugStore(),
             new \App\Models\EventPublicSlugModel(),
             static::publicCacheInvalidationNotifier(),
+            static::eventTypeListRepository(),
         );
     }
 

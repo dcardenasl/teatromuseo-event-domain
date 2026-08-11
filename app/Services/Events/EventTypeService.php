@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services\Events;
 
+use App\DTO\Response\Events\EventTypeResponseDTO;
 use App\Entities\EventTypeEntity;
+use App\Interfaces\Events\AdminListProjectionRepositoryInterface;
 use App\Interfaces\Events\EventTypeServiceInterface;
 use App\Interfaces\PublicCacheInvalidationNotifierInterface;
 use App\Models\EventPublicSlugModel;
+use App\Support\AdminListProjectionDecoder;
 use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
+use dcardenasl\Ci4ApiCore\Dto\PaginatedResponseDTO;
 use dcardenasl\Ci4ApiCore\Dto\SecurityContext;
 use dcardenasl\Ci4ApiCore\Localization\LocalizedTranslationStore;
 use dcardenasl\Ci4ApiCore\Localization\PublicSlugStore;
@@ -44,6 +48,7 @@ class EventTypeService extends BaseCrudService implements EventTypeServiceInterf
         PublicSlugStore $slugStore,
         private EventPublicSlugModel $publicSlugModel,
         private readonly PublicCacheInvalidationNotifierInterface $cacheInvalidator,
+        private readonly ?AdminListProjectionRepositoryInterface $eventTypeListRepository = null,
     ) {
         parent::__construct($eventTypeRepository, $responseMapper);
         $this->translationStore = $translationStore;
@@ -51,6 +56,30 @@ class EventTypeService extends BaseCrudService implements EventTypeServiceInterf
         $this->slugStore = $slugStore;
         $this->slugResourceType = 'event_type';
         $this->slugSourceField = 'name';
+    }
+
+    public function index(DataTransferObjectInterface $request, ?SecurityContext $context = null): DataTransferObjectInterface
+    {
+        $requestData = $request->toArray();
+        if (($requestData['projection'] ?? 'full') !== 'list' || $this->eventTypeListRepository === null) {
+            return parent::index($request, $context);
+        }
+
+        $result = $this->eventTypeListRepository->paginateAdminList($requestData, (int) ($requestData['page'] ?? 1), (int) ($requestData['per_page'] ?? 20));
+        $data = array_map(static function (array $row): EventTypeResponseDTO {
+            $decoded = AdminListProjectionDecoder::translations($row['translations_data'] ?? null);
+            $row['translations'] = array_map(static fn (array $translation): array => [
+                'locale' => $translation['locale'],
+                ...$translation['fields'],
+            ], $decoded);
+            $row['slugs'] = AdminListProjectionDecoder::slugs($row['slugs_data'] ?? null);
+            $row['localized'] = ['name' => (string) ($row['name'] ?? '')];
+            unset($row['translations_data'], $row['slugs_data'], $row['total_items']);
+
+            return EventTypeResponseDTO::fromArray($row);
+        }, $result['data']);
+
+        return PaginatedResponseDTO::fromArray(['data' => $data, 'total' => $result['total'], 'page' => $result['page'], 'per_page' => $result['per_page']]);
     }
 
     public function isSlugAvailable(string $slug, string $locale, int $currentId = 0): bool

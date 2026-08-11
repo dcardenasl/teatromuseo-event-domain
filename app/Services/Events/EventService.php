@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services\Events;
 
+use App\DTO\Response\Events\EventResponseDTO;
 use App\Entities\EventEntity;
+use App\Interfaces\Events\AdminListProjectionRepositoryInterface;
 use App\Interfaces\Events\EventServiceInterface;
 use App\Interfaces\Events\OccurrenceRepositoryInterface;
 use App\Interfaces\PublicCacheInvalidationNotifierInterface;
+use App\Support\AdminListProjectionDecoder;
 use DateTimeImmutable;
 use DateTimeZone;
 use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
@@ -51,6 +54,7 @@ class EventService extends BaseCrudService implements EventServiceInterface
         OccurrenceRepositoryInterface $occurrenceRepository,
         string $scheduleTimezone,
         private readonly PublicCacheInvalidationNotifierInterface $cacheInvalidator,
+        private readonly ?AdminListProjectionRepositoryInterface $eventListRepository = null,
     ) {
         parent::__construct($eventRepository, $responseMapper);
         $this->translationStore = $translationStore;
@@ -60,6 +64,35 @@ class EventService extends BaseCrudService implements EventServiceInterface
         $this->slugSourceField = 'title';
         $this->occurrenceRepository = $occurrenceRepository;
         $this->scheduleTimezone = new DateTimeZone($scheduleTimezone);
+    }
+
+    public function index(DataTransferObjectInterface $request, ?SecurityContext $context = null): DataTransferObjectInterface
+    {
+        $requestData = $request->toArray();
+        if (($requestData['projection'] ?? 'full') !== 'list' || $this->eventListRepository === null) {
+            return parent::index($request, $context);
+        }
+
+        $result = $this->eventListRepository->paginateAdminList($requestData, (int) ($requestData['page'] ?? 1), (int) ($requestData['per_page'] ?? 20));
+        $data = array_map(static function (array $row): EventResponseDTO {
+            $decoded = AdminListProjectionDecoder::translations($row['translations_data'] ?? null);
+            $row['translations'] = array_map(static fn (array $translation): array => [
+                'locale' => $translation['locale'],
+                ...$translation['fields'],
+            ], $decoded);
+            $row['slugs'] = AdminListProjectionDecoder::slugs($row['slugs_data'] ?? null);
+            $row['slug'] = $row['slugs'] !== [] ? (string) reset($row['slugs']) : '';
+            $row['localized'] = array_filter([
+                'title' => (string) ($row['title'] ?? ''),
+                'description' => (string) ($row['description'] ?? ''),
+            ], static fn (string $value): bool => $value !== '');
+            $row['occurrences'] = [];
+            unset($row['translations_data'], $row['slugs_data'], $row['total_items']);
+
+            return EventResponseDTO::fromArray($row);
+        }, $result['data']);
+
+        return PaginatedResponseDTO::fromArray(['data' => $data, 'total' => $result['total'], 'page' => $result['page'], 'per_page' => $result['per_page']]);
     }
 
     /**
