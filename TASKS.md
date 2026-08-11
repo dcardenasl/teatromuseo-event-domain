@@ -6,6 +6,11 @@
 
 ## ✅ Completadas
 
+- [x] **ADM-DASH-02 — Read model acotado para el dashboard Admin** — cerrada
+  2026-08-11. Endpoint autenticado y permission-aware con conteos y actividad
+  reciente bounded para eventos, programación, recintos, funciones y ticketing;
+  contrato, OpenAPI y prueba de integración de columnas reales verificados.
+
 - [x] **QA-01 — Contract tests y OpenAPI** — cerrada 2026-08-10. Contrato
   PublicRead Events, OpenAPI, auth, envelope, fallback, regresión CRUD y
   estados verificados. Evidencia en [`../docs/audits/2026-08-10-qa-01-contractos-openapi.md`](../docs/audits/2026-08-10-qa-01-contractos-openapi.md).

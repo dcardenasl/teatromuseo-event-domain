@@ -5,6 +5,8 @@ declare (strict_types=1);
 $routes->group('events', ['namespace' => '\App\Controllers\Api\V1\Events'], function ($routes): void {
     // Auth & Admin Protected Group
     $routes->group('', ['filter' => ['domainauth', 'throttle']], function ($routes): void {
+        $routes->get('dashboard/summary', 'DashboardSummaryController::index');
+
         // Event Routes
         $routes->group('', ['filter' => 'permission:event.events.read'], function ($routes): void {
             $routes->get('events', 'EventController::index');
