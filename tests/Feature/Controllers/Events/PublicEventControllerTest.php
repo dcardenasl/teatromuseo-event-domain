@@ -172,6 +172,135 @@ final class PublicEventControllerTest extends CIUnitTestCase
         );
     }
 
+    public function testPublicReadRangeRequiresOneOccurrenceToSatisfyBothBounds(): void
+    {
+        $split = $this->createEvent('Read Split Range', 'published', '2026-08-01 10:00:00');
+        $this->insertOccurrence((int) $split['id'], '2026-08-30 10:00:00');
+        $this->createEvent('Read Matching Range', 'published', '2026-08-15 10:00:00');
+
+        $result = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])->get(
+            '/api/v1/public-read/es/events?fields=id,title&from=2026-08-10%2010:00:00&to=2026-08-20%2010:00:00',
+        );
+
+        $result->assertStatus(200);
+        $body = json_decode((string) $result->getJSON(), true);
+        $this->assertSame(['Read Matching Range'], array_column($body['data'] ?? [], 'title'));
+    }
+
+    public function testPublicReadRejectsAnInvertedOccurrenceRange(): void
+    {
+        $result = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])->get(
+            '/api/v1/public-read/es/events?from=2026-08-20%2010:00:00&to=2026-08-10%2010:00:00',
+        );
+
+        $result->assertStatus(422);
+    }
+
+    public function testPublicReadResolvesParentLocaleAndPrefersItForSlugCollisions(): void
+    {
+        $parentLocaleEvent = $this->createEvent('Parent Locale Event', 'published');
+        $preferredEvent = $this->createEvent('Preferred Locale Event', 'published');
+        $fallbackEvent = $this->createEvent('Fallback Locale Event', 'published');
+
+        $this->db->table('event_translations')->insert([
+            'translatable_type' => 'event',
+            'translatable_id' => $parentLocaleEvent['id'],
+            'locale' => 'en',
+            'field' => 'title',
+            'value' => 'Parent English Event',
+            'created_at' => '2026-08-11 10:00:00',
+            'updated_at' => '2026-08-11 10:00:00',
+        ]);
+        $this->db->table('event_public_slugs')->insert([
+            'resource_type' => 'event',
+            'resource_id' => $parentLocaleEvent['id'],
+            'locale' => 'en',
+            'slug' => 'parent-english-event',
+            'created_at' => '2026-08-11 10:00:00',
+            'updated_at' => '2026-08-11 10:00:00',
+        ]);
+        $this->db->table('event_public_slugs')->insert([
+            'resource_type' => 'event',
+            'resource_id' => $preferredEvent['id'],
+            'locale' => 'en',
+            'slug' => 'shared-event',
+            'created_at' => '2026-08-11 10:00:00',
+            'updated_at' => '2026-08-11 10:00:00',
+        ]);
+        $this->db->table('event_public_slugs')
+            ->where('resource_type', 'event')
+            ->where('resource_id', $fallbackEvent['id'])
+            ->where('locale', 'es')
+            ->update([
+                'slug' => 'shared-event',
+                'updated_at' => '2026-08-11 10:00:00',
+            ]);
+
+        $parentResult = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])->get(
+            '/api/v1/public-read/en-US/events/parent-english-event?fields=id,title,slug',
+        );
+        $parentResult->assertStatus(200);
+        $parentBody = json_decode((string) $parentResult->getJSON(), true);
+        $this->assertSame((int) $parentLocaleEvent['id'], $parentBody['data']['id'] ?? null);
+        $this->assertSame('Parent English Event', $parentBody['data']['title'] ?? null);
+
+        $collisionResult = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])->get(
+            '/api/v1/public-read/en/events/shared-event?fields=id',
+        );
+        $collisionResult->assertStatus(200);
+        $collisionBody = json_decode((string) $collisionResult->getJSON(), true);
+        $this->assertSame((int) $preferredEvent['id'], $collisionBody['data']['id'] ?? null);
+    }
+
+    public function testPublicReadSparseDetailDoesNotHydrateUnrequestedChildren(): void
+    {
+        $event = $this->createEvent('Sparse Detail', 'published');
+
+        $result = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])->get(
+            '/api/v1/public-read/es/events/' . $event['uuid'] . '?fields=id',
+        );
+
+        $result->assertStatus(200);
+        $body = json_decode((string) $result->getJSON(), true);
+        $this->assertSame(['id'], array_keys($body['data'] ?? []));
+    }
+
+    public function testPublicReadSourceRevisionChangesWhenOccurrenceOrTranslationChanges(): void
+    {
+        $event = $this->createEvent('Revision Event', 'published');
+
+        $first = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])->get(
+            '/api/v1/public-read/es/events/' . $event['uuid'] . '?fields=id,title',
+        );
+        $firstBody = json_decode((string) $first->getJSON(), true);
+        $firstRevision = $firstBody['meta']['source_revision'] ?? null;
+
+        $this->db->table('occurrences')->where('event_id', $event['id'])->update([
+            'updated_at' => '2040-01-01 10:00:00',
+        ]);
+        $second = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])->get(
+            '/api/v1/public-read/es/events/' . $event['uuid'] . '?fields=id,title',
+        );
+        $secondBody = json_decode((string) $second->getJSON(), true);
+        $secondRevision = $secondBody['meta']['source_revision'] ?? null;
+        $this->assertNotSame($firstRevision, $secondRevision);
+
+        $this->db->table('event_translations')
+            ->where('translatable_type', 'event')
+            ->where('translatable_id', $event['id'])
+            ->where('locale', 'es')
+            ->where('field', 'title')
+            ->update([
+                'value' => 'Revision Event Updated',
+                'updated_at' => '2041-01-01 10:00:00',
+            ]);
+        $third = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])->get(
+            '/api/v1/public-read/es/events/' . $event['uuid'] . '?fields=id,title',
+        );
+        $thirdBody = json_decode((string) $third->getJSON(), true);
+        $this->assertNotSame($secondRevision, $thirdBody['meta']['source_revision'] ?? null);
+    }
+
     public function testPublicReadDetailUsesUuidAndReturnsCanonicalEnvelope(): void
     {
         $event = $this->createEvent('PublicRead Detail', 'published');
@@ -251,6 +380,23 @@ final class PublicEventControllerTest extends CIUnitTestCase
         ]));
 
         return $event;
+    }
+
+    private function insertOccurrence(int $eventId, string $startTime): void
+    {
+        $this->db->table('occurrences')->insert([
+            'event_id' => $eventId,
+            'venue_id' => null,
+            'start_time' => $startTime,
+            'end_time' => (new \DateTimeImmutable($startTime, new \DateTimeZone('UTC')))
+                ->modify('+1 hour')
+                ->format('Y-m-d H:i:s'),
+            'status' => 'scheduled',
+            'capacity' => 0,
+            'available_spots' => 0,
+            'created_at' => '2026-08-11 10:00:00',
+            'updated_at' => '2026-08-11 10:00:00',
+        ]);
     }
 
     /** @param array<string, mixed> $body */
