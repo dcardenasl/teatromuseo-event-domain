@@ -8,6 +8,7 @@ use App\DTO\Request\Events\PublicReadEventRequestDTO;
 use App\Interfaces\Events\PublicReadEventReaderInterface;
 use App\Libraries\Hub\HubClient;
 use App\Modules\PublicRead\Support\PublicReadEnvelope;
+use CodeIgniter\Database\BaseBuilder;
 use CodeIgniter\Database\BaseConnection;
 use dcardenasl\Ci4ApiCore\Support\ApiResult;
 
@@ -35,39 +36,46 @@ final class PublicReadEventReader implements PublicReadEventReaderInterface
     /** @param list<string> $fields */
     public function index(PublicReadEventRequestDTO $request, array $fields): ApiResult
     {
-        $now = (new \DateTimeImmutable('now', new \DateTimeZone($this->timezone)))->format('Y-m-d H:i:s');
-        $builder = $this->baseBuilder($request->locale);
+        $now = $this->now();
+        $builder = $this->baseBuilder($now);
         $this->applyFilters($builder, $request);
 
         $countBuilder = clone $builder;
         $total = (int) $countBuilder->countAllResults();
 
-        $nextOccurrence = $this->nextOccurrenceExpression($now);
         if ($request->sort === 'latest') {
             $builder->orderBy('e.created_at', 'DESC')->orderBy('e.id', 'DESC');
         } elseif ($request->sort === 'id') {
             $builder->orderBy('e.id', 'ASC');
         } elseif ($request->sort === 'title') {
+            // The legacy projection is the only indexed title projection. The
+            // localized title is hydrated after pagination, so keep this sort
+            // stable and database-side without reintroducing a translation join.
             $builder->orderBy('e.title', 'ASC')->orderBy('e.id', 'ASC');
         } else {
             // Future events first, chronological; past events follow in reverse.
-            $lastOccurrence = $this->lastOccurrenceExpression($now);
-            $builder->orderBy("CASE WHEN {$nextOccurrence} IS NULL THEN 1 ELSE 0 END", 'ASC', false)
-                ->orderBy($nextOccurrence, 'ASC', false)
-                ->orderBy($lastOccurrence, 'DESC', false)
+            $builder->orderBy('CASE WHEN occurrence_projection.next_occurrence_at IS NULL THEN 1 ELSE 0 END', 'ASC', false)
+                ->orderBy('occurrence_projection.next_occurrence_at', 'ASC')
+                ->orderBy('occurrence_projection.last_occurrence_at', 'DESC')
                 ->orderBy('e.id', 'ASC');
         }
 
-        $builder->select(implode(', ', array_map(static fn (string $column): string => 'e.' . $column, $this->columnsFor($fields))) . ", {$nextOccurrence} AS next_occurrence_at", false);
+        $select = array_map(static fn (string $column): string => 'e.' . $column, $this->columnsFor($fields));
+        $select[] = 'occurrence_projection.occurrence_revision AS occurrence_revision';
+        if ($this->wants($fields, 'next_occurrence_at')) {
+            $select[] = 'occurrence_projection.next_occurrence_at AS next_occurrence_at';
+        }
+
+        $builder->select(implode(', ', $select), false);
         $builder->limit($request->perPage, ($request->page - 1) * $request->perPage);
         $query = $builder->get();
         $rows = $query !== false ? array_values($query->getResultArray()) : [];
-        $data = $this->hydrate($rows, $request->locale, false, $fields);
+        $hydrated = $this->hydrate($rows, $request->locale, false, $fields);
 
         return PublicReadEnvelope::success(
             locale: $request->locale,
-            data: $data,
-            sourceRevision: $this->revision($rows),
+            data: $hydrated['data'],
+            sourceRevision: $hydrated['revision'],
             page: $request->page,
             perPage: $request->perPage,
             total: $total,
@@ -78,15 +86,23 @@ final class PublicReadEventReader implements PublicReadEventReaderInterface
     /** @param list<string> $fields */
     public function show(string $locale, string $idOrSlug, array $fields): ApiResult
     {
-        $builder = $this->baseBuilder($locale);
-        $builder->select(implode(', ', array_map(static fn (string $column): string => 'e.' . $column, $this->columnsFor($fields))));
-        if (ctype_digit(trim($idOrSlug))) {
+        $now = $this->now();
+        $builder = $this->baseBuilder($now);
+        $select = array_map(static fn (string $column): string => 'e.' . $column, $this->columnsFor($fields));
+        $select[] = 'occurrence_projection.occurrence_revision AS occurrence_revision';
+        $builder->select(implode(', ', $select), false);
+
+        $idOrSlug = trim($idOrSlug);
+        if (ctype_digit($idOrSlug)) {
             $builder->where('e.id', (int) $idOrSlug);
+        } elseif (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $idOrSlug) === 1) {
+            $builder->where('e.uuid', $idOrSlug);
         } else {
+            $candidates = $this->localeCandidates($locale);
             $builder->groupStart()
-                ->where('e.uuid', trim($idOrSlug))
+                ->where('e.uuid', $idOrSlug)
                 ->orWhere(
-                    "EXISTS (SELECT 1 FROM event_public_slugs ps WHERE ps.resource_type = 'event' AND ps.resource_id = e.id AND ps.locale IN (" . $this->db->escape($locale) . ', ' . $this->db->escape($this->fallbackLocale) . ") AND ps.slug = " . $this->db->escape(trim($idOrSlug)) . ')',
+                    'e.id = ' . $this->slugResourceIdExpression($idOrSlug, $candidates),
                     null,
                     false,
                 )
@@ -99,31 +115,57 @@ final class PublicReadEventReader implements PublicReadEventReaderInterface
             return $this->notFound($locale);
         }
 
-        $data = $this->hydrate([$row], $locale, true, $fields)[0] ?? [];
+        $hydrated = $this->hydrate([$row], $locale, true, $fields);
 
         return PublicReadEnvelope::success(
             locale: $locale,
-            data: $data,
-            sourceRevision: $this->revision([$row]),
+            data: $hydrated['data'][0] ?? [],
+            sourceRevision: $hydrated['revision'],
             meta: ['fields' => $fields, 'query' => ['id_or_slug' => $idOrSlug]],
         );
     }
 
-    private function baseBuilder(string $locale): \CodeIgniter\Database\BaseBuilder
+    private function now(): string
+    {
+        return (new \DateTimeImmutable('now', new \DateTimeZone($this->timezone)))->format('Y-m-d H:i:s');
+    }
+
+    private function baseBuilder(string $now): BaseBuilder
     {
         $builder = $this->db->table('events e');
-        $builder->where('e.status', 'published')->where('e.deleted_at', null);
-        $builder->where(
-            "EXISTS (SELECT 1 FROM occurrences ov WHERE ov.event_id = e.id AND ov.deleted_at IS NULL)",
-            null,
+        $builder->join(
+            $this->occurrenceProjection($now),
+            'occurrence_projection.event_id = e.id',
+            'inner',
             false,
         );
+        $builder->where('e.status', 'published')->where('e.deleted_at', null);
 
         return $builder;
     }
 
-    private function applyFilters(\CodeIgniter\Database\BaseBuilder $builder, PublicReadEventRequestDTO $request): void
+    private function occurrenceProjection(string $now): string
     {
+        $escapedNow = $this->db->escape($now);
+
+        return <<<SQL
+(
+    SELECT o.event_id,
+           MIN(CASE WHEN o.start_time >= {$escapedNow} THEN o.start_time END) AS next_occurrence_at,
+           MAX(CASE WHEN o.start_time < {$escapedNow} THEN o.start_time END) AS last_occurrence_at,
+           MAX(COALESCE(o.updated_at, o.created_at)) AS occurrence_revision
+    FROM occurrences o
+    WHERE o.deleted_at IS NULL
+    GROUP BY o.event_id
+) occurrence_projection
+SQL;
+    }
+
+    private function applyFilters(BaseBuilder $builder, PublicReadEventRequestDTO $request): void
+    {
+        $localeCandidates = $this->localeCandidates($request->locale);
+        $localeList = $this->escapedList($localeCandidates);
+
         if ($request->eventType !== '') {
             $builder->where('e.event_type', $request->eventType);
         }
@@ -132,73 +174,85 @@ final class PublicReadEventReader implements PublicReadEventReaderInterface
             $builder->groupStart()
                 ->like('e.title', $request->search)
                 ->orLike('e.description', $request->search)
-                ->orWhere("EXISTS (SELECT 1 FROM event_translations ets WHERE ets.translatable_type = 'event' AND ets.translatable_id = e.id AND ets.locale IN (" . $this->db->escape($request->locale) . ', ' . $this->db->escape($this->fallbackLocale) . ") AND ets.field IN ('title', 'description') AND ets.value LIKE {$search})", null, false)
+                ->orWhere(
+                    "EXISTS (SELECT 1 FROM event_translations ets WHERE ets.translatable_type = 'event' AND ets.translatable_id = e.id AND ets.locale IN ({$localeList}) AND ets.field IN ('title', 'description') AND ets.value LIKE {$search})",
+                    null,
+                    false,
+                )
                 ->groupEnd();
         }
-        if ($request->from !== '') {
+
+        if ($request->from !== '' || $request->to !== '') {
+            $range = ['ofilter.event_id = e.id', 'ofilter.deleted_at IS NULL'];
+            if ($request->from !== '') {
+                $range[] = 'ofilter.start_time >= ' . $this->db->escape($request->from);
+            }
+            if ($request->to !== '') {
+                $range[] = 'ofilter.start_time <= ' . $this->db->escape($request->to);
+            }
             $builder->where(
-                "EXISTS (SELECT 1 FROM occurrences ofrom WHERE ofrom.event_id = e.id AND ofrom.deleted_at IS NULL AND ofrom.start_time >= " . $this->db->escape($request->from) . ')',
+                'EXISTS (SELECT 1 FROM occurrences ofilter WHERE ' . implode(' AND ', $range) . ')',
                 null,
                 false,
             );
         }
-        if ($request->to !== '') {
-            $builder->where(
-                "EXISTS (SELECT 1 FROM occurrences oto WHERE oto.event_id = e.id AND oto.deleted_at IS NULL AND oto.start_time <= " . $this->db->escape($request->to) . ')',
-                null,
-                false,
-            );
-        }
-    }
-
-    private function nextOccurrenceExpression(string $now): string
-    {
-        return "(SELECT MIN(oc.start_time) FROM occurrences oc WHERE oc.event_id = e.id AND oc.deleted_at IS NULL AND oc.start_time >= " . $this->db->escape($now) . ')';
-    }
-
-    private function lastOccurrenceExpression(string $now): string
-    {
-        return "(SELECT MAX(oc.start_time) FROM occurrences oc WHERE oc.event_id = e.id AND oc.deleted_at IS NULL AND oc.start_time < " . $this->db->escape($now) . ')';
     }
 
     /**
      * @param list<array<string, mixed>> $rows
      * @param list<string> $fields
-     * @return list<array<string, mixed>>
+     * @return array{data: list<array<string, mixed>>, revision: string}
      */
     private function hydrate(array $rows, string $locale, bool $detail, array $fields): array
     {
         if ($rows === []) {
-            return [];
+            return ['data' => [], 'revision' => 'events:empty'];
         }
 
         $ids = array_values(array_unique(array_map(static fn (array $row): int => (int) $row['id'], $rows)));
-        $translationQuery = $this->db->table('event_translations')
-            ->select('translatable_id, locale, field, value')
-            ->where('translatable_type', 'event')
-            ->whereIn('translatable_id', $ids)
-            ->whereIn('locale', array_values(array_unique([$locale, $this->fallbackLocale])))
-            ->get();
-        $translationRows = $translationQuery !== false ? $translationQuery->getResultArray() : [];
+        $candidates = $this->localeCandidates($locale);
+        $needsContent = $this->needsContent($fields);
+        $needsTranslations = $fields === [] || $needsContent || $this->wants($fields, 'translations');
+        $needsSlugs = $fields === [] || $this->wants($fields, 'slug') || $this->wants($fields, 'slugs');
+        $needsOccurrences = $detail && $this->wants($fields, 'occurrences');
+        $childRevision = null;
+
         $translations = [];
-        foreach ($translationRows as $translation) {
-            $translations[(int) $translation['translatable_id']][(string) $translation['locale']][(string) $translation['field']] = (string) $translation['value'];
+        if ($needsTranslations) {
+            $translationQuery = $this->db->table('event_translations')
+                ->select('translatable_id, locale, field, value, updated_at, created_at')
+                ->where('translatable_type', 'event')
+                ->whereIn('translatable_id', $ids)
+                ->whereIn('locale', $candidates)
+                ->get();
+            $translationRows = $translationQuery !== false ? $translationQuery->getResultArray() : [];
+            foreach ($translationRows as $translation) {
+                $id = (int) $translation['translatable_id'];
+                $translationLocale = (string) $translation['locale'];
+                $field = (string) $translation['field'];
+                $translations[$id][$translationLocale][$field] = (string) $translation['value'];
+                $childRevision = $this->maxTimestamp($childRevision, $translation);
+            }
         }
 
-        $slugQuery = $this->db->table('event_public_slugs')
-            ->select('resource_id, locale, slug')
-            ->where('resource_type', 'event')
-            ->whereIn('resource_id', $ids)
-            ->whereIn('locale', array_values(array_unique([$locale, $this->fallbackLocale])))
-            ->get();
-        $slugRows = $slugQuery !== false ? $slugQuery->getResultArray() : [];
         $slugs = [];
-        foreach ($slugRows as $slug) {
-            $slugs[(int) $slug['resource_id']][(string) $slug['locale']] = (string) $slug['slug'];
+        if ($needsSlugs) {
+            $slugQuery = $this->db->table('event_public_slugs')
+                ->select('resource_id, locale, slug, updated_at, created_at')
+                ->where('resource_type', 'event')
+                ->whereIn('resource_id', $ids)
+                ->whereIn('locale', $candidates)
+                ->get();
+            $slugRows = $slugQuery !== false ? $slugQuery->getResultArray() : [];
+            foreach ($slugRows as $slug) {
+                $id = (int) $slug['resource_id'];
+                $slugs[$id][(string) $slug['locale']] = (string) $slug['slug'];
+                $childRevision = $this->maxTimestamp($childRevision, $slug);
+            }
         }
 
         $occurrencesByEvent = [];
-        if ($detail) {
+        if ($needsOccurrences) {
             $occurrenceQuery = $this->db->table('occurrences o')
                 ->select('o.event_id, o.id, o.venue_id, o.start_time, o.end_time, o.status, o.capacity, o.available_spots, v.name AS venue_name')
                 ->join('venues v', 'v.id = o.venue_id', 'left')
@@ -209,48 +263,243 @@ final class PublicReadEventReader implements PublicReadEventReaderInterface
             $occurrences = $occurrenceQuery !== false ? $occurrenceQuery->getResultArray() : [];
             foreach ($occurrences as $occurrence) {
                 $occurrencesByEvent[(int) $occurrence['event_id']][] = $occurrence;
+                $childRevision = $this->maxTimestamp($childRevision, $occurrence);
             }
         }
 
-        $resolveCover = $fields === [] || in_array('cover_image', $fields, true);
-        $resolveGallery = $fields === [] || in_array('gallery_images', $fields, true);
+        $resolveCover = $fields === [] || $this->wants($fields, 'cover_image');
+        $resolveGallery = $fields === [] || $this->wants($fields, 'gallery_images');
         $fileIds = [];
-        foreach ($rows as $row) {
-            $fileIds = array_merge($fileIds, $this->fileIds($row, $resolveCover, $resolveGallery));
+        if ($resolveCover || $resolveGallery) {
+            foreach ($rows as $row) {
+                $fileIds = array_merge($fileIds, $this->fileIds($row, $resolveCover, $resolveGallery));
+            }
         }
         $media = $this->resolveMedia($fileIds);
 
         $result = [];
         foreach ($rows as $row) {
             $id = (int) $row['id'];
-            $localized = [
-                'title' => $translations[$id][$locale]['title'] ?? $translations[$id][$this->fallbackLocale]['title'] ?? $row['title'],
-                'description' => $translations[$id][$locale]['description'] ?? $translations[$id][$this->fallbackLocale]['description'] ?? $row['description'],
-            ];
-            $payload = [
-                'id' => $id,
-                'uuid' => (string) ($row['uuid'] ?? ''),
-                'title' => $localized['title'],
-                'event_type' => (string) ($row['event_type'] ?? ''),
-                'description' => $localized['description'],
-                'cover_file_id' => isset($row['cover_file_id']) ? (int) $row['cover_file_id'] : null,
-                'gallery_file_ids' => $row['gallery_file_ids'] ?? null,
-                'cover_image' => $this->mediaItem($media, (int) ($row['cover_file_id'] ?? 0)),
-                'gallery_images' => $this->galleryMedia($media, $row['gallery_file_ids'] ?? null),
-                'translations' => $this->translationPayload($translations[$id] ?? []),
-                'localized' => $localized,
-                'slug' => $slugs[$id][$locale] ?? $slugs[$id][$this->fallbackLocale] ?? '',
-                'slugs' => $slugs[$id] ?? [],
-                'occurrences' => $detail ? ($occurrencesByEvent[$id] ?? []) : [],
-                'next_occurrence_at' => $row['next_occurrence_at'] ?? null,
-                'status' => (string) ($row['status'] ?? ''),
-                'created_at' => $row['created_at'] ?? null,
-                'updated_at' => $row['updated_at'] ?? null,
-            ];
-            $result[] = $this->filterFields($payload, $fields);
+            $localized = [];
+            if ($needsContent) {
+                $localized = [
+                    'title' => $this->localizedValue($translations[$id] ?? [], $candidates, 'title', $row['title'] ?? ''),
+                    'description' => $this->localizedValue($translations[$id] ?? [], $candidates, 'description', $row['description'] ?? ''),
+                ];
+            }
+
+            $payload = [];
+            if ($this->wants($fields, 'id')) {
+                $payload['id'] = $id;
+            }
+            if ($this->wants($fields, 'uuid')) {
+                $payload['uuid'] = (string) ($row['uuid'] ?? '');
+            }
+            if ($this->wants($fields, 'title')) {
+                $payload['title'] = $localized['title'] ?? (string) ($row['title'] ?? '');
+            }
+            if ($this->wants($fields, 'event_type')) {
+                $payload['event_type'] = (string) ($row['event_type'] ?? '');
+            }
+            if ($this->wants($fields, 'description')) {
+                $payload['description'] = $localized['description'] ?? (string) ($row['description'] ?? '');
+            }
+            if ($this->wants($fields, 'cover_file_id')) {
+                $payload['cover_file_id'] = isset($row['cover_file_id']) ? (int) $row['cover_file_id'] : null;
+            }
+            if ($this->wants($fields, 'gallery_file_ids')) {
+                $payload['gallery_file_ids'] = $row['gallery_file_ids'] ?? null;
+            }
+            if ($resolveCover) {
+                $payload['cover_image'] = $this->mediaItem($media, (int) ($row['cover_file_id'] ?? 0));
+            }
+            if ($resolveGallery) {
+                $payload['gallery_images'] = $this->galleryMedia($media, $row['gallery_file_ids'] ?? null);
+            }
+            if ($this->wants($fields, 'translations')) {
+                $payload['translations'] = $this->translationPayload($translations[$id] ?? []);
+            }
+            if ($this->wants($fields, 'localized')) {
+                $payload['localized'] = $localized;
+            }
+            if ($this->wants($fields, 'slug')) {
+                $payload['slug'] = $this->localizedValue($slugs[$id] ?? [], $candidates, null, '');
+            }
+            if ($this->wants($fields, 'slugs')) {
+                $payload['slugs'] = $slugs[$id] ?? [];
+            }
+            if ($this->wants($fields, 'occurrences')) {
+                $payload['occurrences'] = $occurrencesByEvent[$id] ?? [];
+            }
+            if ($this->wants($fields, 'next_occurrence_at')) {
+                $payload['next_occurrence_at'] = $row['next_occurrence_at'] ?? null;
+            }
+            if ($this->wants($fields, 'status')) {
+                $payload['status'] = (string) ($row['status'] ?? '');
+            }
+            if ($this->wants($fields, 'created_at')) {
+                $payload['created_at'] = $row['created_at'] ?? null;
+            }
+            if ($this->wants($fields, 'updated_at')) {
+                $payload['updated_at'] = $row['updated_at'] ?? null;
+            }
+
+            $result[] = $payload;
         }
 
-        return $result;
+        return ['data' => $result, 'revision' => $this->revision($rows, $childRevision)];
+    }
+
+    /** @param list<string> $fields */
+    private function needsContent(array $fields): bool
+    {
+        return $fields === [] || $this->wants($fields, 'title') || $this->wants($fields, 'description') || $this->wants($fields, 'localized');
+    }
+
+    /** @param list<string> $fields */
+    private function wants(array $fields, string $field): bool
+    {
+        return $fields === [] || in_array($field, $fields, true);
+    }
+
+    /**
+     * @param array<string, array<string, string>|string> $rows
+     * @param list<string> $candidates
+     */
+    private function localizedValue(array $rows, array $candidates, ?string $field, mixed $legacy): string
+    {
+        foreach ($candidates as $candidate) {
+            $value = $rows[$candidate] ?? null;
+            if ($field !== null && is_array($value)) {
+                $value = $value[$field] ?? null;
+            }
+            if (is_scalar($value) && trim((string) $value) !== '') {
+                return (string) $value;
+            }
+        }
+
+        return is_scalar($legacy) ? (string) $legacy : '';
+    }
+
+    /** @return list<string> */
+    private function localeCandidates(string $locale): array
+    {
+        $candidates = [];
+        $append = static function (string $candidate) use (&$candidates): void {
+            if ($candidate !== '' && ! in_array($candidate, $candidates, true)) {
+                $candidates[] = $candidate;
+            }
+        };
+
+        $normalized = strtolower(str_replace('_', '-', trim($locale)));
+        while ($normalized !== '') {
+            $append($normalized);
+            $parts = explode('-', $normalized);
+            array_pop($parts);
+            $normalized = implode('-', $parts);
+        }
+
+        $fallback = strtolower(str_replace('_', '-', trim($this->fallbackLocale)));
+        while ($fallback !== '') {
+            $append($fallback);
+            $parts = explode('-', $fallback);
+            array_pop($parts);
+            $fallback = implode('-', $parts);
+        }
+
+        return $candidates;
+    }
+
+    /** @param list<string> $values */
+    private function escapedList(array $values): string
+    {
+        return implode(', ', array_map(fn (string $value): string => (string) $this->db->escape($value), $values));
+    }
+
+    /** @param list<string> $candidates */
+    private function slugResourceIdExpression(string $slug, array $candidates): string
+    {
+        $priority = $this->localePriorityCase('ps.locale', $candidates);
+        $localeList = $this->escapedList($candidates);
+
+        return "(SELECT ps.resource_id FROM event_public_slugs ps WHERE ps.resource_type = 'event' AND ps.slug = "
+            . $this->db->escape($slug)
+            . " AND ps.locale IN ({$localeList}) ORDER BY {$priority}, ps.resource_id ASC LIMIT 1)";
+    }
+
+    /** @param list<string> $candidates */
+    private function localePriorityCase(string $column, array $candidates): string
+    {
+        $parts = ['CASE'];
+        foreach ($candidates as $priority => $candidate) {
+            $parts[] = 'WHEN ' . $column . ' = ' . $this->db->escape($candidate) . ' THEN ' . $priority;
+        }
+
+        return implode(' ', [...$parts, 'ELSE', (string) count($candidates), 'END']);
+    }
+
+    /**
+     * @param list<string> $fields
+     * @return list<string>
+     */
+    private function columnsFor(array $fields): array
+    {
+        if ($fields === []) {
+            return self::PUBLIC_COLUMNS;
+        }
+
+        $columns = [];
+        $columns[] = 'id';
+        $columns[] = 'updated_at';
+        foreach (self::PUBLIC_COLUMNS as $column) {
+            if ($this->wants($fields, $column) && ! in_array($column, $columns, true)) {
+                $columns[] = $column;
+            }
+        }
+        if (($this->wants($fields, 'title') || $this->wants($fields, 'localized'))
+            && ! in_array('title', $columns, true)) {
+            $columns[] = 'title';
+        }
+        if (($this->wants($fields, 'description') || $this->wants($fields, 'localized'))
+            && ! in_array('description', $columns, true)) {
+            $columns[] = 'description';
+        }
+        if ($this->wants($fields, 'cover_image') && ! in_array('cover_file_id', $columns, true)) {
+            $columns[] = 'cover_file_id';
+        }
+        if ($this->wants($fields, 'gallery_images') && ! in_array('gallery_file_ids', $columns, true)) {
+            $columns[] = 'gallery_file_ids';
+        }
+
+        return array_values($columns);
+    }
+
+    /** @param array<string, mixed> $row */
+    private function maxTimestamp(?string $current, array $row): ?string
+    {
+        $candidate = (string) ($row['updated_at'] ?? $row['created_at'] ?? '');
+        if ($candidate === '') {
+            return $current;
+        }
+
+        return $current === null || $candidate > $current ? $candidate : $current;
+    }
+
+    /** @param list<array<string, mixed>> $rows */
+    private function revision(array $rows, ?string $childRevision): string
+    {
+        $updated = '';
+        $children = $childRevision ?? '';
+        $maxId = 0;
+        foreach ($rows as $row) {
+            $updated = max($updated, (string) ($row['updated_at'] ?? ''));
+            $children = max($children, (string) ($row['occurrence_revision'] ?? ''));
+            $maxId = max($maxId, (int) ($row['id'] ?? 0));
+        }
+
+        return 'events:' . ($updated !== '' ? $updated : 'empty')
+            . ':children:' . ($children !== '' ? $children : 'empty')
+            . ':' . $maxId;
     }
 
     /**
@@ -265,16 +514,6 @@ final class PublicReadEventReader implements PublicReadEventReaderInterface
         }
 
         return $payload;
-    }
-
-    /**
-     * @param array<string, mixed> $payload
-     * @param list<string> $fields
-     * @return array<string, mixed>
-     */
-    private function filterFields(array $payload, array $fields): array
-    {
-        return $fields === [] ? $payload : array_intersect_key($payload, array_flip($fields));
     }
 
     /**
@@ -295,7 +534,7 @@ final class PublicReadEventReader implements PublicReadEventReaderInterface
             }
         }
 
-        return array_map(static fn (mixed $id): int => (int) $id, array_values(array_unique($ids)));
+        return array_values(array_unique($ids));
     }
 
     /**
@@ -308,9 +547,7 @@ final class PublicReadEventReader implements PublicReadEventReaderInterface
             return [];
         }
 
-        $normalized = array_values(array_map(static fn (mixed $id): int => (int) $id, $ids));
-
-        return $this->hubClient->resolvePublicFileMeta($normalized);
+        return $this->hubClient->resolvePublicFileMeta(array_values(array_unique(array_map(static fn (mixed $id): int => (int) $id, $ids))));
     }
 
     /**
@@ -319,7 +556,7 @@ final class PublicReadEventReader implements PublicReadEventReaderInterface
      */
     private function mediaItem(array $media, int $id): ?array
     {
-        if ($id <= 0 || !isset($media[$id])) {
+        if ($id <= 0 || ! isset($media[$id])) {
             return null;
         }
         $meta = $media[$id];
@@ -348,19 +585,6 @@ final class PublicReadEventReader implements PublicReadEventReaderInterface
         return $result;
     }
 
-    /** @param list<array<string, mixed>> $rows */
-    private function revision(array $rows): string
-    {
-        $updated = '';
-        $maxId = 0;
-        foreach ($rows as $row) {
-            $updated = max($updated, (string) ($row['updated_at'] ?? ''));
-            $maxId = max($maxId, (int) ($row['id'] ?? 0));
-        }
-
-        return 'events:' . ($updated !== '' ? $updated : 'empty') . ':' . $maxId;
-    }
-
     private function notFound(string $locale): ApiResult
     {
         return new ApiResult([
@@ -371,26 +595,5 @@ final class PublicReadEventReader implements PublicReadEventReaderInterface
             'source' => ['domain' => 'events', 'state' => 'unavailable', 'stale' => false],
             'messages' => ['Event not found.'],
         ], 404);
-    }
-
-    /**
-     * @param list<string> $fields
-     * @return list<string>
-     */
-    private function columnsFor(array $fields): array
-    {
-        if ($fields === []) {
-            return self::PUBLIC_COLUMNS;
-        }
-
-        $required = ['id', 'uuid', 'title', 'description', 'event_type', 'status', 'updated_at'];
-        $fieldColumns = array_intersect(self::PUBLIC_COLUMNS, $fields);
-        if (in_array('cover_image', $fields, true)) {
-            $fieldColumns[] = 'cover_file_id';
-        }
-        if (in_array('gallery_images', $fields, true)) {
-            $fieldColumns[] = 'gallery_file_ids';
-        }
-        return array_values(array_unique(array_merge($required, $fieldColumns)));
     }
 }
