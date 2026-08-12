@@ -7,6 +7,7 @@ return [
     'update_success' => 'Event updated successfully.',
     'delete_success' => 'Event deleted successfully.',
     'not_found'      => 'Event not found.',
+    'invalid_public_range' => 'The from date must be before or equal to the to date.',
     'fields'         => [
         'uuid' => 'Uuid',
         'title' => 'Title',

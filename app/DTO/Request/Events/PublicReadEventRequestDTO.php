@@ -6,6 +6,7 @@ namespace App\DTO\Request\Events;
 
 use CodeIgniter\Validation\ValidationInterface;
 use dcardenasl\Ci4ApiCore\Dto\BaseRequestDTO;
+use dcardenasl\Ci4ApiCore\Exceptions\ValidationException;
 
 /** Explicit request contract for the public events listing. */
 readonly class PublicReadEventRequestDTO extends BaseRequestDTO
@@ -49,6 +50,21 @@ readonly class PublicReadEventRequestDTO extends BaseRequestDTO
 
     protected function map(array $data): void
     {
+    }
+
+    /** @param array<string, mixed> $data */
+    protected function validate(array $data): void
+    {
+        parent::validate($data);
+
+        $from = trim((string) ($data['from'] ?? ''));
+        $to = trim((string) ($data['to'] ?? ''));
+        if ($from !== '' && $to !== '' && $from > $to) {
+            throw new ValidationException(
+                lang('Api.validationFailed'),
+                ['from' => [lang('Events.invalid_public_range')]],
+            );
+        }
     }
 
     /** @return array<string, mixed> */
