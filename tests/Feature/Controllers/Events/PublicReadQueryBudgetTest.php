@@ -125,15 +125,71 @@ final class PublicReadQueryBudgetTest extends CIUnitTestCase
         $this->assertNotNull($listingSql, $this->querySummary($measurement['queries']));
 
         $plan = $this->db->query('EXPLAIN ' . $listingSql)->getResultArray();
-        $eventDriverPlan = $this->findPlanRow($plan, 'ov');
-        $this->assertNotNull($eventDriverPlan, json_encode($plan, JSON_UNESCAPED_SLASHES));
-        $this->assertSame('idx_occurrences_public_read', $eventDriverPlan['key'] ?? null, json_encode($eventDriverPlan));
-        $this->assertNotSame('ALL', $eventDriverPlan['type'] ?? null, json_encode($eventDriverPlan));
+        $projectionPlan = $this->findPlanRowStartingWith($plan, '<derived');
+        $this->assertNotNull($projectionPlan, json_encode($plan, JSON_UNESCAPED_SLASHES));
+
+        // The projection is intentionally materialized once per request. The
+        // important regression guard is that its occurrence scan uses the
+        // public-read index, rather than repeating correlated aggregates.
+        $occurrencePlan = $this->findPlanRow($plan, 'o');
+        $this->assertNotNull($occurrencePlan, json_encode($plan, JSON_UNESCAPED_SLASHES));
+        $this->assertSame('idx_occurrences_public_read', $occurrencePlan['key'] ?? null, json_encode($occurrencePlan));
+        $this->assertNotSame('ALL', $occurrencePlan['type'] ?? null, json_encode($occurrencePlan));
 
         $this->assertTrue(
-            $this->planHasKey($plan, 'oc', 'idx_occurrences_public_read'),
+            $this->planHasKey($plan, 'o', 'idx_occurrences_public_read'),
             json_encode($plan, JSON_UNESCAPED_SLASHES),
         );
+    }
+
+    public function testShowMinimalAndCompleteFieldsetsStayWithinSeparateBudgets(): void
+    {
+        $eventId = $this->createBudgetEvent('QA show budget');
+
+        $minimal = $this->measureGet('/api/v1/public-read/es/events/' . $eventId . '?fields=id');
+        $minimal['response']->assertStatus(200);
+        $this->assertLessThanOrEqual(2, $minimal['query_count'], $this->querySummary($minimal['queries']));
+        $this->assertNoStandaloneHydrationQueries($minimal['queries']);
+
+        $completeFields = implode(',', [
+            'id', 'uuid', 'title', 'event_type', 'description', 'slug', 'slugs',
+            'translations', 'occurrences', 'status', 'created_at', 'updated_at',
+        ]);
+        $complete = $this->measureGet('/api/v1/public-read/es/events/' . $eventId . '?fields=' . $completeFields);
+        $complete['response']->assertStatus(200);
+        $this->assertLessThanOrEqual(5, $complete['query_count'], $this->querySummary($complete['queries']));
+    }
+
+    public function testFiltersAndSearchKeepAStableListingBudget(): void
+    {
+        for ($index = 0; $index < 12; $index++) {
+            $this->createBudgetEvent($index === 3 ? 'QA searchable function' : 'QA other function');
+        }
+
+        $measurement = $this->measureGet(
+            '/api/v1/public-read/es/events?fields=id,title&event_type=function&search=searchable'
+            . '&from=2026-08-10%2010:00:00&to=2026-08-20%2010:00:00&per_page=10',
+        );
+        $measurement['response']->assertStatus(200);
+        $this->assertLessThanOrEqual(5, $measurement['query_count'], $this->querySummary($measurement['queries']));
+        $this->assertLessThanOrEqual(500.0, $this->totalDuration($measurement['queries']), $this->querySummary($measurement['queries']));
+
+        $listingSql = $this->findQuery($measurement['queries'], 'FROM `events` `e`');
+        $this->assertNotNull($listingSql, $this->querySummary($measurement['queries']));
+        $this->assertStringContainsString('ofilter', $listingSql);
+        $this->assertStringContainsString('event_translations', $listingSql);
+    }
+
+    public function testLegacyPublicListingRemainsWithinItsCompatibilityBudget(): void
+    {
+        for ($index = 0; $index < 24; $index++) {
+            $this->createBudgetEvent('QA legacy ' . $index);
+        }
+
+        $measurement = $this->measureGet('/api/v1/public/events?per_page=24');
+        $measurement['response']->assertStatus(200);
+        $this->assertLessThanOrEqual(12, $measurement['query_count'], $this->querySummary($measurement['queries']));
+        $this->assertLessThanOrEqual(500.0, $this->totalDuration($measurement['queries']), $this->querySummary($measurement['queries']));
     }
 
     /**
@@ -187,6 +243,84 @@ final class PublicReadQueryBudgetTest extends CIUnitTestCase
     {
         foreach ($plan as $row) {
             if (($row['table'] ?? null) === $table) {
+                return $row;
+            }
+        }
+
+        return null;
+    }
+
+    /** @param list<array{sql:string,duration_ms:float}> $queries */
+    private function assertNoStandaloneHydrationQueries(array $queries): void
+    {
+        foreach ($queries as $query) {
+            $sql = $query['sql'];
+            $this->assertStringNotContainsString('FROM `event_translations`', $sql);
+            $this->assertStringNotContainsString('FROM `event_public_slugs`', $sql);
+            $this->assertStringNotContainsString('JOIN `venues`', $sql);
+        }
+    }
+
+    private function createBudgetEvent(string $title): int
+    {
+        $this->db->table('events')->insert([
+            'uuid' => 'qa-budget-' . bin2hex(random_bytes(8)),
+            'title' => $title,
+            'description' => 'QA budget description',
+            'event_type' => 'function',
+            'status' => 'published',
+            'created_at' => '2026-08-11 09:00:00',
+            'updated_at' => '2026-08-11 09:00:00',
+        ]);
+        $eventId = (int) $this->db->insertID();
+        $this->db->table('occurrences')->insert([
+            'event_id' => $eventId,
+            'venue_id' => null,
+            'start_time' => '2026-08-15 10:00:00',
+            'end_time' => '2026-08-15 11:00:00',
+            'status' => 'scheduled',
+            'capacity' => 100,
+            'available_spots' => 100,
+            'created_at' => '2026-08-11 09:00:00',
+            'updated_at' => '2026-08-11 09:00:00',
+        ]);
+        $this->db->table('event_translations')->insertBatch([
+            [
+                'translatable_type' => 'event',
+                'translatable_id' => $eventId,
+                'locale' => 'es',
+                'field' => 'title',
+                'value' => $title,
+                'created_at' => '2026-08-11 09:00:00',
+                'updated_at' => '2026-08-11 09:00:00',
+            ],
+            [
+                'translatable_type' => 'event',
+                'translatable_id' => $eventId,
+                'locale' => 'es',
+                'field' => 'description',
+                'value' => 'QA budget description',
+                'created_at' => '2026-08-11 09:00:00',
+                'updated_at' => '2026-08-11 09:00:00',
+            ],
+        ]);
+        $this->db->table('event_public_slugs')->insert([
+            'resource_type' => 'event',
+            'resource_id' => $eventId,
+            'locale' => 'es',
+            'slug' => 'qa-budget-' . $eventId,
+            'created_at' => '2026-08-11 09:00:00',
+            'updated_at' => '2026-08-11 09:00:00',
+        ]);
+
+        return $eventId;
+    }
+
+    /** @param list<array<string,mixed>> $plan */
+    private function findPlanRowStartingWith(array $plan, string $tablePrefix): ?array
+    {
+        foreach ($plan as $row) {
+            if (is_string($row['table'] ?? null) && str_starts_with($row['table'], $tablePrefix)) {
                 return $row;
             }
         }
