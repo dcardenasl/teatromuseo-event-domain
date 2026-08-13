@@ -11,7 +11,6 @@ use App\Interfaces\Events\EventServiceInterface;
 use App\Interfaces\Events\OccurrenceRepositoryInterface;
 use App\Interfaces\PublicCacheInvalidationNotifierInterface;
 use App\Support\AdminListProjectionDecoder;
-use DateTimeImmutable;
 use DateTimeZone;
 use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
 use dcardenasl\Ci4ApiCore\Dto\PaginatedResponseDTO;
@@ -210,124 +209,10 @@ class EventService extends BaseCrudService implements EventServiceInterface
         return $this->localizedMapToResponse($entity);
     }
 
-    /**
-     * A "future ascending, then past descending" order can't be expressed by the single
-     * ORDER BY direction the generic `sort` criteria produces, and re-sorting only within an
-     * already-paginated page would miss most upcoming events (they're a small slice of the
-     * whole chronological table). So this walks every matching row through the normal
-     * paginated criteria path (bounded by this domain's real event volume — a single venue's
-     * programming, not a high-volume table), re-sorts in PHP, then paginates that result.
-     */
-    public function indexPublicCartelera(DataTransferObjectInterface $request, ?SecurityContext $context = null): DataTransferObjectInterface
-    {
-        $requestData = $request->toArray();
-        $page = max(1, (int) ($requestData['page'] ?? 1));
-        $perPage = max(1, (int) ($requestData['per_page'] ?? 20));
-        $requestData['filter'] = is_array($requestData['filter'] ?? null) ? $requestData['filter'] : [];
-        $requestData['filter']['status'] = 'published';
-
-        $criteria = $this->applyQueryOptions($requestData);
-        $requestedSort = trim((string) ($requestData['sort'] ?? ''));
-        unset($criteria['sort']);
-        $baseCriteria = function ($builder): void {
-            $this->applyBaseCriteria($builder);
-        };
-
-        // An explicit editor/public-listing sort is authoritative. The
-        // special chronological ordering remains the default only when no
-        // sort was requested, preserving the existing cartelera behavior.
-        if ($requestedSort !== '') {
-            $allEntities = [];
-            $walkPage = 1;
-            do {
-                $result = $this->repository->paginateCriteria(
-                    [...$criteria, 'sort' => $requestedSort],
-                    $walkPage,
-                    100,
-                    $baseCriteria,
-                );
-                $allEntities = array_merge($allEntities, (array) $result['data']);
-                $walkPage++;
-            } while ($walkPage <= (int) $result['last_page']);
-
-            $entities = array_values(array_filter(
-                $this->enrichEntities($allEntities),
-                fn (object $entity): bool => $this->hasOccurrences($entity)
-            ));
-            $pageEntities = array_slice($entities, ($page - 1) * $perPage, $perPage);
-            $data = array_map(fn (object $entity): DataTransferObjectInterface => $this->mapToResponse($entity), $pageEntities);
-
-            return PaginatedResponseDTO::fromArray([
-                'data' => $data,
-                'total' => count($entities),
-                'page' => $page,
-                'per_page' => $perPage,
-            ]);
-        }
-
-        $allEntities = [];
-        $walkPage = 1;
-        do {
-            $result = $this->repository->paginateCriteria($criteria, $walkPage, 100, $baseCriteria);
-            $allEntities = array_merge($allEntities, (array) $result['data']);
-            $walkPage++;
-        } while ($walkPage <= (int) $result['last_page']);
-
-        $allEntities = array_values(array_filter(
-            $this->enrichEntities($allEntities),
-            fn (object $entity): bool => $this->hasOccurrences($entity)
-        ));
-        $now = (new DateTimeImmutable('now', $this->scheduleTimezone))->format('Y-m-d H:i:s');
-        usort($allEntities, static function (object $a, object $b) use ($now): int {
-            $aStart = self::firstOccurrenceStart($a);
-            $bStart = self::firstOccurrenceStart($b);
-            if ($aStart === '' && $bStart === '') {
-                return 0;
-            }
-            if ($aStart === '') {
-                return 1;
-            }
-            if ($bStart === '') {
-                return -1;
-            }
-            $aFuture = $aStart >= $now;
-            $bFuture = $bStart >= $now;
-            if ($aFuture !== $bFuture) {
-                return $aFuture ? -1 : 1;
-            }
-
-            return $aFuture ? $aStart <=> $bStart : $bStart <=> $aStart;
-        });
-
-        $total = count($allEntities);
-        $pageEntities = array_slice($allEntities, ($page - 1) * $perPage, $perPage);
-
-        $data = array_map(fn (object $entity): DataTransferObjectInterface => $this->mapToResponse($entity), $pageEntities);
-
-        return PaginatedResponseDTO::fromArray([
-            'data' => $data,
-            'total' => $total,
-            'page' => $page,
-            'per_page' => $perPage,
-        ]);
-    }
-
     private function hasOccurrences(object $entity): bool
     {
         $occurrences = $entity->occurrences ?? [];
 
         return is_array($occurrences) && $occurrences !== [];
-    }
-
-    private static function firstOccurrenceStart(object $entity): string
-    {
-        $occurrences = $entity->occurrences ?? [];
-        if (! is_array($occurrences) || $occurrences === []) {
-            return '';
-        }
-
-        $first = $occurrences[0] ?? [];
-
-        return is_array($first) ? (string) ($first['start_time'] ?? '') : '';
     }
 }

@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controllers\Api\V1\Events;
 
-use App\DTO\Request\Events\EventIndexRequestDTO;
 use App\DTO\Request\Events\EventTypeIndexRequestDTO;
 use App\Interfaces\Events\EventServiceInterface;
 use App\Services\Events\EventMediaResolutionService;
 use CodeIgniter\HTTP\ResponseInterface;
 use Config\Services;
-use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
 use dcardenasl\Ci4ApiCore\Dto\SecurityContext;
 use dcardenasl\Ci4ApiCore\Http\ApiController;
 use dcardenasl\Ci4ApiCore\Traits\SparseFieldsetTrait;
@@ -18,11 +16,6 @@ use dcardenasl\Ci4ApiCore\Traits\SparseFieldsetTrait;
 class PublicEventController extends ApiController
 {
     use SparseFieldsetTrait;
-
-    private const LISTING_FIELDS = [
-        'id', 'uuid', 'title', 'event_type', 'slug', 'cover_file_id',
-        'cover_image', 'translations', 'localized', 'status',
-    ];
 
     private const DETAIL_FIELDS = [
         'id', 'uuid', 'title', 'event_type', 'slug', 'slugs', 'cover_file_id',
@@ -54,29 +47,6 @@ class PublicEventController extends ApiController
                 $resolved = $this->mediaResolutionService->resolveMediaFields($data);
                 return $this->sparseFilter($resolved, $fields);
             }
-        );
-    }
-
-    public function index(): ResponseInterface
-    {
-        return $this->handleRequest(
-            function (EventIndexRequestDTO $dto, SecurityContext $context): mixed {
-                $fields = $this->parseFieldsParam(self::LISTING_FIELDS);
-                $result = $this->eventService->indexPublicCartelera($dto, $context)->toArray();
-
-                if (is_array($result['data'] ?? null)) {
-                    foreach ($result['data'] as $key => $event) {
-                        $eventArray = $event instanceof DataTransferObjectInterface
-                            ? $event->toArray()
-                            : (array) $event;
-                        $resolved = $this->mediaResolutionService->resolveMediaFields($eventArray);
-                        $result['data'][$key] = $this->sparseFilter($resolved, $fields);
-                    }
-                }
-
-                return $result;
-            },
-            EventIndexRequestDTO::class
         );
     }
 

@@ -207,18 +207,6 @@ final class PublicReadQueryBudgetTest extends CIUnitTestCase
         $this->assertStringContainsString('event_translations', $listingSql);
     }
 
-    public function testLegacyPublicListingRemainsWithinItsCompatibilityBudget(): void
-    {
-        for ($index = 0; $index < 24; $index++) {
-            $this->createBudgetEvent('QA legacy ' . $index);
-        }
-
-        $measurement = $this->measureGet('/api/v1/public/events?per_page=24');
-        $measurement['response']->assertStatus(200);
-        $this->assertLessThanOrEqual(12, $measurement['query_count'], $this->querySummary($measurement['queries']));
-        $this->assertLessThanOrEqual(500.0, $this->totalDuration($measurement['queries']), $this->querySummary($measurement['queries']));
-    }
-
     /**
      * @return array{response: \CodeIgniter\Test\TestResponse, queries: list<array{sql:string,duration_ms:float}>, query_count:int}
      */

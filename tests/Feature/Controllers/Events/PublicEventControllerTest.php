@@ -45,28 +45,7 @@ final class PublicEventControllerTest extends CIUnitTestCase
         parent::tearDown();
     }
 
-    public function testIndexRejectsMissingAppKey(): void
-    {
-        $result = $this->get('/api/v1/public/events');
-
-        $result->assertStatus(401);
-    }
-
-    public function testIndexReturnsOnlyPublishedEvents(): void
-    {
-        $this->createEvent('Función Viva', 'published');
-        $this->createEvent('Ensayo Cerrado', 'draft');
-
-        $result = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])->get('/api/v1/public/events');
-
-        $result->assertStatus(200);
-        $body = json_decode((string) $result->getJSON(), true);
-        $titles = array_column($body['data'] ?? [], 'title');
-        $this->assertContains('Función Viva', $titles);
-        $this->assertNotContains('Ensayo Cerrado', $titles);
-    }
-
-    public function testPublicCarteleraExcludesPublishedEventsWithoutOccurrences(): void
+    public function testShowExcludesPublishedEventsWithoutOccurrences(): void
     {
         $event = Services::eventService(false)->store(Services::requestDtoFactory()->make(EventCreateRequestDTO::class, [
             'title' => 'Función sin horario',
@@ -74,14 +53,6 @@ final class PublicEventControllerTest extends CIUnitTestCase
             'description' => 'No debe publicarse sin una función programada.',
             'status' => 'published',
         ]))->toArray();
-
-        $listing = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])->get('/api/v1/public/events');
-        $listing->assertStatus(200);
-        $body = json_decode((string) $listing->getJSON(), true);
-        $titles = array_column($body['data'] ?? [], 'title');
-
-        $this->assertNotContains('Función sin horario', $titles);
-        $this->assertSame(0, (int) ($body['meta']['total'] ?? 0));
 
         $detail = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])
             ->get('/api/v1/public/events/' . $event['id']);
@@ -97,26 +68,6 @@ final class PublicEventControllerTest extends CIUnitTestCase
         $types = array_column($body['data'] ?? [], 'slug');
 
         $this->assertSame(['function', 'festival', 'course', 'workshop', 'other'], $types);
-    }
-
-    public function testIndexOrdersUpcomingFirstThenMostRecentPast(): void
-    {
-        // A real "cartelera" reads: what's playing next, then — scrolling down — what just
-        // played, oldest last. A single ascending/descending `sort` can't express that split,
-        // so this exercises the dedicated indexPublicCartelera() path end-to-end.
-        $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
-        $this->createEvent('Hace un año', 'published', $now->modify('-1 year')->format('Y-m-d H:i:s'));
-        $this->createEvent('Mañana', 'published', $now->modify('+1 day')->format('Y-m-d H:i:s'));
-        $this->createEvent('Ayer', 'published', $now->modify('-1 day')->format('Y-m-d H:i:s'));
-        $this->createEvent('En un mes', 'published', $now->modify('+1 month')->format('Y-m-d H:i:s'));
-        $this->createEvent('Hace una semana', 'published', $now->modify('-1 week')->format('Y-m-d H:i:s'));
-
-        $result = $this->withHeaders(['X-App-Key' => self::WEB_API_KEY])->get('/api/v1/public/events');
-
-        $result->assertStatus(200);
-        $body = json_decode((string) $result->getJSON(), true);
-        $titles = array_column($body['data'] ?? [], 'title');
-        $this->assertSame(['Mañana', 'En un mes', 'Ayer', 'Hace una semana', 'Hace un año'], $titles);
     }
 
     public function testPublicReadListingUsesVersionedEnvelopeAndSqlOccurrenceProjection(): void
