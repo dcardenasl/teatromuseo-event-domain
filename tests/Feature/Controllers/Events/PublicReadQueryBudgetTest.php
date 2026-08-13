@@ -140,6 +140,33 @@ final class PublicReadQueryBudgetTest extends CIUnitTestCase
             $this->planHasKey($plan, 'o', 'idx_occurrences_public_read'),
             json_encode($plan, JSON_UNESCAPED_SLASHES),
         );
+
+        // Regression for docs/audits/2026-08-12-auditoria-parte2-rendimiento-listados-publicos.md
+        // §2.D/§1.6: `events` itself only had single-column status/event_type
+        // indexes, and this table's own access plan was never verified here —
+        // a real coverage gap. Measured with idx_events_public_listing
+        // (status, deleted_at, event_type) present: for this reader's
+        // "agenda"-sort query, MySQL drives the join from
+        // occurrence_projection (the smaller, already-has-occurrences side)
+        // and probes `events` via PRIMARY eq_ref — genuinely the optimal
+        // plan here, better than any secondary index. Verified separately
+        // (scratch EXPLAIN, not committed as a test) that a standalone
+        // `events` filter — `WHERE status='published' AND deleted_at IS NULL
+        // AND event_type=?`, the shape this index exists for — does select
+        // idx_events_public_listing (`type=ref`, `Using index`) once the
+        // occurrence-projection join isn't in the way. The regression this
+        // assertion guards against is a full table scan on `events`, not one
+        // specific key — see §1.6's own note that adding an index "by
+        // symmetry" without measuring is exactly what this audit argues
+        // against; `possible_keys` confirms the optimizer did consider it.
+        $eventPlan = $this->findPlanRow($plan, 'e');
+        $this->assertNotNull($eventPlan, json_encode($plan, JSON_UNESCAPED_SLASHES));
+        $this->assertNotSame('ALL', $eventPlan['type'] ?? null, json_encode($eventPlan));
+        $this->assertStringContainsString(
+            'idx_events_public_listing',
+            (string) ($eventPlan['possible_keys'] ?? ''),
+            json_encode($eventPlan),
+        );
     }
 
     public function testShowMinimalAndCompleteFieldsetsStayWithinSeparateBudgets(): void
