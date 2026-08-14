@@ -12,35 +12,6 @@ use OpenApi\Attributes as OA;
 class PublicEventEndpoints
 {
     #[OA\Get(
-        path: '/api/v1/public/events/types',
-        tags: ['Public Events'],
-        summary: 'List active event types for public filters',
-        description: 'Returns the administrable event-type catalogue with localized names. Only active types are exposed.',
-        security: [['appKeyAuth' => []]],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: 'List retrieved successfully',
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: 'status', type: 'string', example: 'success'),
-                        new OA\Property(
-                            property: 'data',
-                            type: 'array',
-                            items: new OA\Items(ref: '#/components/schemas/EventTypeResponse')
-                        ),
-                    ],
-                    type: 'object'
-                )
-            ),
-            new OA\Response(response: 401, description: 'Missing or invalid X-App-Key'),
-        ]
-    )]
-    public function types(): void
-    {
-    }
-
-    #[OA\Get(
         path: '/api/v1/public/events/{idOrSlug}',
         tags: ['Public Events'],
         summary: 'Get a published event by id, uuid, or per-locale routing slug',

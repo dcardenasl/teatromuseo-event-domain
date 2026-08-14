@@ -31,20 +31,6 @@ trait EventsDomainServices
         return new \App\Services\Admin\DashboardSummaryService(static::dashboardSummaryRepository());
     }
 
-    public static function publicReadEventReader(bool $getShared = true): \App\Interfaces\Events\PublicReadEventReaderInterface
-    {
-        if ($getShared) {
-            return static::getSharedInstance('publicReadEventReader');
-        }
-
-        return new \App\Services\Events\PublicReadEventReader(
-            \Config\Database::connect(),
-            static::hubClient(),
-            (string) env('EVENT_SCHEDULE_TIMEZONE', config('App')->eventScheduleTimezone),
-            (string) config('Localization')->legacyFallbackLocale,
-        );
-    }
-
     /**
      * Shared per-request locale resolver.
      *
