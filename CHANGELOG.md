@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **`/api/v1/public-read/{locale}/events` and `/api/v1/public/events/types`** — retired now
+  that `teatromuseo-bff` reads this domain's database directly and serves the public-read
+  surface exclusively; removed the controllers, DTOs, OpenAPI docs and their transitional
+  shared-package dependency. The legacy `/api/v1/public/events/{idOrSlug}` detail endpoint
+  is unaffected.
+
 ### Added
 
 - **`/api/v1/public-read/{locale}/events` endpoints** — versioned envelope read model for public
