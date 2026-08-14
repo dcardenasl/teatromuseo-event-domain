@@ -6,6 +6,15 @@
 
 ## ✅ Completadas
 
+- [x] **WEB-BFF-03-GATE — Reparar el adaptador PublicRead de Event para el
+  rollout BFF.** El adaptador ya no instancia el DTO Composer compartido sin
+  validación: recibe `RequestDtoFactory` por DI y lo usa para construir el
+  `PublicReadEventRequestDTO` compartido. El wiring de `EventsDomainServices`
+  quedó alineado. Verificado contra MySQL y HTTP real: listado `200`, detalle
+  `200`, rango inválido `422`, y respuestas normalizadas de listado y detalle
+  idénticas byte a byte al BFF. `EVT-PR-03` completó el retiro Fase 3 después
+  de la verificación de estabilidad; el BFF queda como dueño único.
+
 - [x] **PERF-03 — Retirar `EventService::indexPublicCartelera()` y la ruta
   `GET public/events`** — cerrada 2026-08-13, ejecutando §2.5/§2.F de
   [`../docs/audits/2026-08-12-auditoria-parte2-rendimiento-listados-publicos.md`](../docs/audits/2026-08-12-auditoria-parte2-rendimiento-listados-publicos.md).
@@ -56,6 +65,16 @@
 - [x] **QA-04 — Paridad y shadow comparison** — cerrada 2026-08-10 como tarea
   raíz cross-repo; evidencia en
   [`../docs/audits/2026-08-10-qa-04-paridad-shadow.md`](../docs/audits/2026-08-10-qa-04-paridad-shadow.md).
+- [x] **EVT-PR-03 — Retirar el HTTP público propio** — cerrada 2026-08-14
+  tras cinco iteraciones estables del BFF/Web y smoke HTTP posterior al
+  retiro: `public-read/*` y `public/events/types` responden `404`, el detalle
+  legacy sigue en `404` para un recurso inexistente y BFF/Web siguen en `200`.
+  Se retiraron controladores, adaptadores, DTOs, contratos OpenAPI y tests
+  específicos; se conservó el detalle legacy. Se quitaron las dependencias
+  Composer de lectura pública, se fijó la plataforma Composer en PHP 8.2.0
+  (el servidor dev usa PHP 8.2) y se regeneró el lock. Las carpetas físicas de
+  `ci4-platform/` quedan intactas por el gate cross-repo. Quality verde: 254
+  tests, 647 assertions, 1 skipped; PHPStan 0 errores y Swagger actualizado.
 
 ## 🔴 En progreso
 
@@ -64,6 +83,32 @@
 
 ## 🟡 Próximo
 
+### BFF de lectura directa (2026-08-13) — ver `../docs/plan/2026-08-13-plan-bff-completo.md`
+
+Espejo exacto de `CAT-PR-01..03` en `teatromuseo-catalog-domain`, aplicado a
+`PublicReadEventReader`. La lectura migrada ahora vive exclusivamente en el
+BFF; el detalle público legacy restante no forma parte de esta migración.
+
+> ⚠️ **`EVT-PR-01..02` (abajo) se completaron bajo un diseño que el plan ya no
+> usa** — proponían extraer/refactorizar la clase hacia un paquete Composer
+> compartido (`teatromuseo-event-public-read` en `ci4-platform/`). Revisión
+> de diseño 2026-08-13 (decisión #5 del plan): con un solo consumidor final
+> (el BFF), un paquete no aporta nada — el BFF escribe su propia
+> implementación en `teatromuseo-bff/app/PublicRead/Event/`, usando el código
+> de este repo como referencia de lectura, no como dependencia. No se pierde
+> el análisis hecho aquí, pero **no dejes ese paquete/`repositories` como si
+> fuera parte del diseño final**; ver `EVT-PR-03`, que lo limpia.
+
+- [x] **EVT-PR-01 — Crear `teatromuseo-event-public-read`.** Mover
+  `PublicReadEventReader` (ya `BaseConnection`-only) al paquete nuevo en
+  `ci4-platform/`, consumido vía path-repo (ya declara `repositories` hacia
+  `ci4-api-core` — extenderlo). `event_public_slugs` se mueve tal cual.
+- [x] **EVT-PR-02 — Refactor a `FileMetaResolverInterface` inyectado.**
+  Mismo cambio que `CAT-PR-02`: `PublicReadEventReader` recibe
+  `FileMetaResolverInterface` por constructor en vez de `HubClient` concreto.
+  Este repo sigue inyectando `HttpFileMetaResolver` (cero cambio de
+  comportamiento propio); el BFF inyectará `DirectDbFileMetaResolver`. Depende
+  de `ci4-public-read-core` (ver `teatromuseo-bff/TASKS.md` BFF-DB-01/02).
 ### Plan vigente — PublicRead/PageDelivery/Snapshots (2026-08-09)
 
 `PUB-00`, `PUB-01/02`, `EVT-01..03`, `SHARED-01` y `CACHE-03` están cerradas
