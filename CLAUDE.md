@@ -171,6 +171,11 @@ composer quality
 
 ## Common pitfalls
 
+- Public-read Event listings and details are owned by
+  `teatromuseo-bff/app/PublicRead/Event/`. If a migration changes a table
+  used by that read model, update and verify the BFF in the same session;
+  there is no cross-repository CI gate that detects the drift automatically.
+
 - ❌ Issuing JWTs from this app — that's the hub's job, always.
 - ❌ Calling `Services::userModel()` or any IAM service — those only exist in the hub.
 - ❌ Storing tokens in cookies/localStorage on the client side — use PHP sessions
