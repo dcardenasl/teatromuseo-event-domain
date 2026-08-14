@@ -72,8 +72,9 @@
   Se retiraron controladores, adaptadores, DTOs, contratos OpenAPI y tests
   específicos; se conservó el detalle legacy. Se quitaron las dependencias
   Composer de lectura pública, se fijó la plataforma Composer en PHP 8.2.0
-  (el servidor dev usa PHP 8.2) y se regeneró el lock. Las carpetas físicas de
-  `ci4-platform/` quedan intactas por el gate cross-repo. Quality verde: 254
+  (el servidor dev usa PHP 8.2) y se regeneró el lock. Las carpetas físicas
+  superseded se eliminaron después en `PKG-CLEANUP-01`, una vez retiradas todas
+  las declaraciones cross-repo. Quality verde: 254
   tests, 647 assertions, 1 skipped; PHPStan 0 errores y Swagger actualizado.
 
 ## 🔴 En progreso
