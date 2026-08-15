@@ -11,12 +11,6 @@
         "sentry/sentry": "^4.6",
         "zircote/swagger-php": "^6.0"
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../../ci4-platform/ci4-api-core"
-        }
-    ],
     "require-dev": {
         "dcardenasl/ci4-api-scaffolding": "^1.1",
         "fakerphp/faker": "^1.9",

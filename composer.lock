@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fa3eeb3e121e68bc0688b2083e908318",
+    "content-hash": "70b885ff755316450242d22970766d09",
     "packages": [
         {
             "name": "codeigniter4/framework",
@@ -85,11 +85,17 @@
         },
         {
             "name": "dcardenasl/ci4-api-core",
-            "version": "dev-main",
+            "version": "v1.4.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dcardenasl/ci4-api-core.git",
+                "reference": "8e35bdfd4892203124fddddfce80074da3840c12"
+            },
             "dist": {
-                "type": "path",
-                "url": "../../ci4-platform/ci4-api-core",
-                "reference": "b8f9ce71b983a9cd6623f86daf001ea0f01a7ebb"
+                "type": "zip",
+                "url": "https://api.github.com/repos/dcardenasl/ci4-api-core/zipball/8e35bdfd4892203124fddddfce80074da3840c12",
+                "reference": "8e35bdfd4892203124fddddfce80074da3840c12",
+                "shasum": ""
             },
             "require": {
                 "codeigniter4/framework": "^4.7",
@@ -112,6 +118,9 @@
             },
             "type": "library",
             "extra": {
+                "branch-alias": {
+                    "dev-main": "1.4.x-dev"
+                },
                 "codeigniter4": {
                     "commands": [
                         "dcardenasl\\Ci4ApiCore\\Commands\\CoreCheck",
@@ -120,53 +129,17 @@
                         "dcardenasl\\Ci4ApiCore\\Commands\\HousekeepingClean",
                         "dcardenasl\\Ci4ApiCore\\Commands\\QueueWork"
                     ]
-                },
-                "branch-alias": {
-                    "dev-main": "1.4.x-dev"
                 }
             },
             "autoload": {
-                "psr-4": {
-                    "dcardenasl\\Ci4ApiCore\\": "src/"
-                },
                 "files": [
                     "src/Helpers/date.php"
-                ]
-            },
-            "autoload-dev": {
+                ],
                 "psr-4": {
-                    "Tests\\": "tests/"
+                    "dcardenasl\\Ci4ApiCore\\": "src/"
                 }
             },
-            "scripts": {
-                "test": [
-                    "phpunit"
-                ],
-                "analyse": [
-                    "phpstan analyse --level=8 --memory-limit=1G"
-                ],
-                "analyse:baseline": [
-                    "phpstan analyse --level=8 --memory-limit=1G --generate-baseline=phpstan-baseline.neon"
-                ],
-                "cs-check": [
-                    "vendor/bin/php-cs-fixer fix --dry-run --diff --no-interaction"
-                ],
-                "cs-fix": [
-                    "vendor/bin/php-cs-fixer fix --no-interaction"
-                ],
-                "security": [
-                    "composer audit --no-dev --locked"
-                ],
-                "mutate": [
-                    "infection --min-msi=60 --min-covered-msi=70 -j4"
-                ],
-                "quality": [
-                    "@analyse",
-                    "@cs-check",
-                    "@security",
-                    "@test"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -179,10 +152,10 @@
             "description": "DTO-first API runtime foundation for CodeIgniter 4: base classes, HTTP layer, services, repositories, filters, audit chain, and queue. Powers ci4-api-starter and ci4-domain-starter. Pair with dcardenasl/ci4-api-scaffolding for CRUD generation.",
             "homepage": "https://github.com/dcardenasl/ci4-api-core",
             "keywords": [
+                "Audit",
+                "CI4",
                 "api",
-                "audit",
                 "base-classes",
-                "ci4",
                 "codeigniter",
                 "codeigniter4",
                 "dto",
@@ -198,9 +171,7 @@
                 "issues": "https://github.com/dcardenasl/ci4-api-core/issues",
                 "source": "https://github.com/dcardenasl/ci4-api-core"
             },
-            "transport-options": {
-                "relative": true
-            }
+            "time": "2026-08-13T06:46:30+00:00"
         },
         {
             "name": "guzzlehttp/psr7",
