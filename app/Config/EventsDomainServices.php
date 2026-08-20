@@ -6,6 +6,18 @@ namespace Config;
 
 trait EventsDomainServices
 {
+    public static function sortOrderBatchService(bool $getShared = true): \App\Services\Events\SortOrderBatchService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('sortOrderBatchService');
+        }
+
+        return new \App\Services\Events\SortOrderBatchService(
+            \Config\Database::connect(),
+            static::publicCacheInvalidationNotifier(),
+        );
+    }
+
     public static function eventListRepository(bool $getShared = true): \App\Interfaces\Events\AdminListProjectionRepositoryInterface
     {
         if ($getShared) {
