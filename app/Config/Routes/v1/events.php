@@ -6,6 +6,7 @@ $routes->group('events', ['namespace' => '\App\Controllers\Api\V1\Events'], func
     // Auth & Admin Protected Group
     $routes->group('', ['filter' => ['domainauth', 'throttle']], function ($routes): void {
         $routes->get('dashboard/summary', 'DashboardSummaryController::index');
+        $routes->post('sort-orders', 'SortOrderController::reorder');
 
         // Event Routes
         $routes->group('', ['filter' => 'permission:event.events.read'], function ($routes): void {

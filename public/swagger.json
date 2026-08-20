@@ -865,6 +865,36 @@
                 ]
             }
         },
+        "/api/v1/events/sort-orders": {
+            "post": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Reorder a bounded event resource in one operation",
+                "operationId": "0be5404672e87ceb1bd2d2ab7c115695",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EventSortOrderBatchRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Order saved successfully"
+                    },
+                    "403": {
+                        "description": "Insufficient permissions"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
         "/api/v1/events/tickets": {
             "get": {
                 "tags": [
@@ -1935,6 +1965,41 @@
                         "description": "available_spots",
                         "type": "integer",
                         "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "EventSortOrderBatchRequest": {
+                "properties": {
+                    "items": {
+                        "description": "Rows to reorder. IDs must be unique.",
+                        "type": "array",
+                        "items": {
+                            "required": [
+                                "id",
+                                "sort_order"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                },
+                                "sort_order": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "maxItems": 500,
+                        "minItems": 1
+                    },
+                    "resource": {
+                        "description": "Event resource to reorder.",
+                        "type": "string",
+                        "enum": [
+                            "event_types"
+                        ]
                     }
                 },
                 "type": "object"
