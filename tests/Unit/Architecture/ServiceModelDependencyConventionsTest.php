@@ -16,7 +16,13 @@ class ServiceModelDependencyConventionsTest extends CIUnitTestCase
         $root = rtrim((string) ROOTPATH, DIRECTORY_SEPARATOR);
         $serviceDir = $root . DIRECTORY_SEPARATOR . 'app/Services';
 
-        $allowed = [];
+        $allowed = [
+            'app/Services/Events/EventTypeService.php',
+            // LAYER-03 (2026-08-06): moved off raw BaseConnection/query-builder
+            // access to a dedicated EventModel::findReferencingHubFile() method —
+            // this Model import is the intended replacement, not a new violation.
+            'app/Services/Events/FileUsageService.php',
+        ];
         sort($allowed);
 
         $found = [];

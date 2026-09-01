@@ -4,12 +4,30 @@ declare(strict_types=1);
 
 namespace App\DTO\Request\Events;
 
+use CodeIgniter\Validation\ValidationInterface;
 use dcardenasl\Ci4ApiCore\Dto\BaseRequestDTO;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'BookingCreateRequest')]
 readonly class BookingCreateRequestDTO extends BaseRequestDTO
 {
+    public function __construct(array $data, ?ValidationInterface $validation = null)
+    {
+        parent::__construct($data, $validation);
+
+        $this->uuid = (string) ($data['uuid'] ?? '');
+        $this->user_id = isset($data['user_id']) ? (int) $data['user_id'] : null;
+        $this->guest_email = $data['guest_email'] ?? null;
+        $this->total_amount = (float) ($data['total_amount'] ?? 0);
+        $this->status = (string) ($data['status'] ?? '');
+        $this->reserved_until = $data['reserved_until'] ?? null;
+        $this->ticket_type_id = (int) ($data['ticket_type_id'] ?? 0);
+        $this->quantity = (int) ($data['quantity'] ?? 0);
+        $this->holder_name = $data['holder_name'] ?? null;
+        $this->holder_email = $data['holder_email'] ?? null;
+
+    }
+
     #[OA\Property(description: 'uuid', type: 'string')]
     public string $uuid;
     #[OA\Property(description: 'user_id', type: 'integer', nullable: true)]
@@ -49,16 +67,6 @@ readonly class BookingCreateRequestDTO extends BaseRequestDTO
 
     protected function map(array $data): void
     {
-        $this->uuid = (string) ($data['uuid'] ?? '');
-        $this->user_id = isset($data['user_id']) ? (int) $data['user_id'] : null;
-        $this->guest_email = $data['guest_email'] ?? null;
-        $this->total_amount = (float) ($data['total_amount'] ?? 0);
-        $this->status = (string) ($data['status'] ?? '');
-        $this->reserved_until = $data['reserved_until'] ?? null;
-        $this->ticket_type_id = (int) ($data['ticket_type_id'] ?? 0);
-        $this->quantity = (int) ($data['quantity'] ?? 0);
-        $this->holder_name = $data['holder_name'] ?? null;
-        $this->holder_email = $data['holder_email'] ?? null;
     }
 
     public function toArray(): array

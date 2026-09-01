@@ -16,6 +16,7 @@ class TicketTypeEntity extends Entity
     protected $casts = [
         'id' => 'integer',
         'event_id' => 'int',
+        'occurrence_id' => '?int',
         'name' => 'string',
         'price' => 'decimal',
         'capacity' => 'int',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DTO\Response\Events;
 
+use App\Traits\DTO\NormalizesResponseTimestamps;
 use dcardenasl\Ci4ApiCore\Dto\DataTransferObjectInterface;
 use OpenApi\Attributes as OA;
 
@@ -14,6 +15,8 @@ use OpenApi\Attributes as OA;
 )]
 final readonly class BookingResponseDTO implements DataTransferObjectInterface
 {
+    use NormalizesResponseTimestamps;
+
     public function __construct(
         #[OA\Property(description: 'Unique identifier', example: 1)]
         public int $id,
@@ -36,6 +39,9 @@ final readonly class BookingResponseDTO implements DataTransferObjectInterface
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public static function fromArray(array $data): static
     {
         return new static(
@@ -46,8 +52,8 @@ final readonly class BookingResponseDTO implements DataTransferObjectInterface
             total_amount: (float) ($data['total_amount'] ?? 0),
             status: (string) ($data['status'] ?? ''),
             reserved_until: $data['reserved_until'] ?? null,
-            createdAt: isset($data['created_at']) ? (string) $data['created_at'] : null,
-            updatedAt: isset($data['updated_at']) ? (string) $data['updated_at'] : null,
+            createdAt: self::normalizeResponseTimestamp($data['created_at'] ?? null),
+            updatedAt: self::normalizeResponseTimestamp($data['updated_at'] ?? null),
         );
     }
 

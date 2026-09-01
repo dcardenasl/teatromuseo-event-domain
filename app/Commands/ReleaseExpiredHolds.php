@@ -17,7 +17,10 @@ class ReleaseExpiredHolds extends BaseCommand
 
     protected $usage = 'bookings:release-expired';
 
-    public function run(array $params)
+    /**
+     * @param array<int, string> $params
+     */
+    public function run(array $params): int
     {
         $bookingModel = model(BookingModel::class);
 
@@ -29,7 +32,7 @@ class ReleaseExpiredHolds extends BaseCommand
 
         if (empty($expiredBookings)) {
             CLI::write('No expired holds found.', 'green');
-            return EXIT_SUCCESS;
+            return 0;
         }
 
         /** @var \App\Services\Events\BookingService $bookingService */
@@ -39,8 +42,8 @@ class ReleaseExpiredHolds extends BaseCommand
 
         foreach ($expiredBookings as $booking) {
             try {
-                $dto = $dtoFactory->create(\App\DTO\Request\Events\BookingUpdateRequestDTO::class, [
-                    'status' => 'expired'
+                $dto = $dtoFactory->make(\App\DTO\Request\Events\BookingUpdateRequestDTO::class, [
+                    'status' => 'expired',
                 ]);
 
                 $bookingService->update((int) $booking->id, $dto);
@@ -52,6 +55,6 @@ class ReleaseExpiredHolds extends BaseCommand
         }
 
         CLI::write("Release cron complete. Released {$count} holds.", 'green');
-        return EXIT_SUCCESS;
+        return 0;
     }
 }

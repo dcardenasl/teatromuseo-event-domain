@@ -7,15 +7,11 @@ return [
     'update_success' => 'Event updated successfully.',
     'delete_success' => 'Event deleted successfully.',
     'not_found'      => 'Event not found.',
+    'invalid_public_range' => 'The from date must be before or equal to the to date.',
     'fields'         => [
         'uuid' => 'Uuid',
         'title' => 'Title',
         'description' => 'Description',
-        'start_time' => 'Start time',
-        'end_time' => 'End time',
-        'venue' => 'Venue',
-        'capacity' => 'Capacity',
-        'available_spots' => 'Available spots',
         'status' => 'Status',
     ],
 ];

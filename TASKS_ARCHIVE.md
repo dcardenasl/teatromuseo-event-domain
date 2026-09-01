@@ -3,6 +3,20 @@
 > Historial de tareas completadas. Movido desde TASKS.md para mantener el tracker activo liviano.
 > Última actualización: 2026-05-07
 
+## ✅ QA-01 — PublicRead y OpenAPI — cerrado 2026-08-10
+
+Envelope versionado, `X-App-Key`, fallback, regresión CRUD y documentación
+OpenAPI de Events verificados. Evidencia cross-repo en
+[`../docs/audits/2026-08-10-qa-01-contractos-openapi.md`](../docs/audits/2026-08-10-qa-01-contractos-openapi.md).
+
+## ✅ QA-02 — EXPLAIN, índices y budgets SQL — cerrado 2026-08-10
+
+Listing Events medido con fixtures MySQL volumétricos, presupuesto de queries y
+duración, EXPLAIN sobre la query real y regresión contra N+1. Se añadió
+`idx_occurrences_public_read` para `EXISTS`, `MIN` y `MAX`; no se conservó un
+índice redundante en `events`.
+Evidencia en [`../docs/audits/2026-08-10-qa-02-explain-indexes.md`](../docs/audits/2026-08-10-qa-02-explain-indexes.md).
+
 ---
 
 ## ✅ Scaffold inicial + integración hub (Milestone domain-starter v0.1, 2026-05-07)
@@ -34,3 +48,17 @@ Sin ID de tarea — trabajo derivado del runtime decoupling de ci4-api-core:
 ---
 
 *TASKS_ARCHIVE · teatromuseo-event-domain · 2026-05-07*
+
+---
+
+## ✅ Cierres 2026-08-05..09 — saneamiento y Events PublicRead
+
+- `EVT-01..03`, `SHARED-01`, `PUB-00`, `PUB-01/02` y `CACHE-03` se completaron
+  dentro del plan de entrega pública.
+- `SPARSE-01` quedó verificado el 2026-08-08: fieldsets de listing/detail,
+  validación de `fields`, reducción de payload y Swagger regenerado.
+- `CORE-01..03`, `LAYER-01/03/04/06`, `CFG-02/04/07/08` y `DOC-01` se
+  reconciliaron en el saneamiento. `CORE-06` y la deuda de migraciones/limpieza
+  siguen deliberadamente abiertos en `TASKS.md`.
+
+La verificación QA del plan nuevo es ahora la única prioridad del dominio.

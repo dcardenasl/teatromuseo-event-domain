@@ -1,10 +1,10 @@
 {
-  "name": "Teatro Museo Events Domain",
+  "name": "Teatro Museo Event Domain",
   "slug": "teatromuseo-event-domain",
   "repo": "dcardenasl/teatromuseo-event-domain",
   "type": "domain-template",
   "version": "0.1.0",
-  "description": "Teatro Museo domain for scheduled programming, ticket types, reservations, and tickets.",
+  "description": "Teatro Museo domain for scheduled programming, venues, occurrences, ticket types, reservations, and tickets.",
   "components": [
     {
       "role": "hub",
@@ -24,14 +24,56 @@
       "domain": 8193
     },
     "databases": {
-      "hub": "ci4_events_hub",
-      "hub_test": "ci4_events_hub_test",
+      "hub": "teatromuseo_api",
+      "hub_test": "teatromuseo_api_test",
       "domain": "teatromuseo_event_domain",
       "domain_test": "teatromuseo_event_domain_test"
     },
-    "domain_app_code": "events"
+    "domain_app_code": "event"
   },
   "entities": [
+    {
+      "name": "Venue",
+      "resource": "venues",
+      "api_path": "/events/venues",
+      "title": "Venues",
+      "fields": [
+        { "name": "name", "type": "string", "label": "Name", "help": "Operational name of the venue.", "required": true },
+        { "name": "slug", "type": "string", "label": "Slug", "help": "Stable URL-safe identifier.", "required": true },
+        { "name": "description", "type": "text", "label": "Description", "help": "Operational notes about the venue." },
+        { "name": "capacity", "type": "integer", "label": "Capacity", "help": "Default capacity of the venue." },
+        { "name": "is_active", "type": "boolean", "label": "Active", "help": "Whether the venue can be selected for new occurrences.", "required": true }
+      ]
+    },
+    {
+      "name": "Occurrence",
+      "resource": "occurrences",
+      "api_path": "/events/occurrences",
+      "title": "Occurrences",
+      "fields": [
+        { "name": "event_id", "type": "integer", "label": "Event ID", "help": "Event aggregate that owns the scheduled session.", "required": true },
+        { "name": "venue_id", "type": "integer", "label": "Venue ID", "help": "Reusable venue assigned to this session." },
+        { "name": "start_time", "type": "string", "label": "Start Time", "help": "Session start date and time.", "required": true },
+        { "name": "end_time", "type": "string", "label": "End Time", "help": "Session end date and time.", "required": true },
+        { "name": "status", "type": "string", "label": "Status", "help": "Operational state of the scheduled session.", "required": true },
+        { "name": "capacity", "type": "integer", "label": "Capacity", "help": "Maximum capacity for this session.", "required": true },
+        { "name": "available_spots", "type": "integer", "label": "Available Spots", "help": "Remaining capacity for this session.", "required": true }
+      ]
+    },
+    {
+      "name": "EventReference",
+      "resource": "event-references",
+      "api_path": "/events/event-references",
+      "title": "Event References",
+      "fields": [
+        { "name": "event_id", "type": "integer", "label": "Event ID", "help": "Event aggregate that owns the reference.", "required": true },
+        { "name": "source_system", "type": "string", "label": "Source System", "help": "Origin system, such as catalog, cms, or legacy.", "required": true },
+        { "name": "source_type", "type": "string", "label": "Source Type", "help": "Origin entity type.", "required": true },
+        { "name": "source_id", "type": "string", "label": "Source ID", "help": "Identifier in the origin system.", "required": true },
+        { "name": "relation", "type": "string", "label": "Relation", "help": "Meaning of the reference, such as work or editorial page.", "required": true },
+        { "name": "metadata", "type": "object", "label": "Metadata", "help": "Optional integration metadata." }
+      ]
+    },
     {
       "name": "Event",
       "resource": "events",
@@ -63,11 +105,6 @@
         },
         { "name": "event_type", "type": "string", "label": "Programming Type", "help": "Classifies the activity as a function, festival, course, workshop, or other program.", "required": true },
         { "name": "description", "type": "text", "label": "Description", "placeholder": "Explain what attendees can expect...", "help": "Long-form event description for the detail page.", "required": true },
-        { "name": "start_time", "type": "string", "label": "Start Time", "help": "When the event starts.", "required": true },
-        { "name": "end_time", "type": "string", "label": "End Time", "help": "When the event ends.", "required": true },
-        { "name": "venue", "type": "string", "label": "Venue", "placeholder": "Convention Center", "help": "Physical or virtual location of the event.", "required": true },
-        { "name": "capacity", "type": "integer", "label": "Capacity", "help": "Maximum number of attendees allowed.", "required": true },
-        { "name": "available_spots", "type": "integer", "label": "Available Spots", "help": "Remaining tickets or seats available.", "required": true },
         { "name": "status", "type": "string", "label": "Status", "help": "Controls whether the event is draft, published, or cancelled.", "required": true }
       ]
     },
@@ -118,18 +155,27 @@
     }
   ],
   "permissions": [
-    { "code": "events.read",         "roles": ["user", "admin", "superadmin"] },
-    { "code": "events.write",        "roles": ["admin", "superadmin"] },
-    { "code": "events.delete",       "roles": ["superadmin"] },
-    { "code": "ticket-types.read",   "roles": ["user", "admin", "superadmin"] },
-    { "code": "ticket-types.write",  "roles": ["admin", "superadmin"] },
-    { "code": "ticket-types.delete", "roles": ["superadmin"] },
-    { "code": "bookings.read",       "roles": ["admin", "superadmin"] },
-    { "code": "bookings.write",      "roles": ["admin", "superadmin"] },
-    { "code": "bookings.delete",     "roles": ["superadmin"] },
-    { "code": "tickets.read",        "roles": ["admin", "superadmin"] },
-    { "code": "tickets.write",       "roles": ["admin", "superadmin"] },
-    { "code": "tickets.delete",      "roles": ["superadmin"] }
+    { "code": "event.events.read",         "roles": ["user", "admin", "superadmin"] },
+    { "code": "event.events.write",        "roles": ["admin", "superadmin"] },
+    { "code": "event.events.delete",       "roles": ["superadmin"] },
+    { "code": "event.venues.read",         "roles": ["user", "admin", "superadmin"] },
+    { "code": "event.venues.write",        "roles": ["admin", "superadmin"] },
+    { "code": "event.venues.delete",       "roles": ["superadmin"] },
+    { "code": "event.occurrences.read",    "roles": ["user", "admin", "superadmin"] },
+    { "code": "event.occurrences.write",   "roles": ["admin", "superadmin"] },
+    { "code": "event.occurrences.delete",  "roles": ["superadmin"] },
+    { "code": "event.event-references.read",  "roles": ["admin", "superadmin"] },
+    { "code": "event.event-references.write", "roles": ["admin", "superadmin"] },
+    { "code": "event.event-references.delete", "roles": ["superadmin"] },
+    { "code": "event.ticket-types.read",   "roles": ["user", "admin", "superadmin"] },
+    { "code": "event.ticket-types.write",  "roles": ["admin", "superadmin"] },
+    { "code": "event.ticket-types.delete", "roles": ["superadmin"] },
+    { "code": "event.bookings.read",       "roles": ["admin", "superadmin"] },
+    { "code": "event.bookings.write",      "roles": ["admin", "superadmin"] },
+    { "code": "event.bookings.delete",     "roles": ["superadmin"] },
+    { "code": "event.tickets.read",        "roles": ["admin", "superadmin"] },
+    { "code": "event.tickets.write",       "roles": ["admin", "superadmin"] },
+    { "code": "event.tickets.delete",      "roles": ["superadmin"] }
   ],
   "mirror_to_hub": true,
   "admin_modules": [
@@ -137,28 +183,49 @@
       "resource": "Event",
       "module": "Events",
       "api_path": "/events/events",
-      "service": "domain",
-      "fields": "uuid:string:required,title:string:required,event_type:enum:required:function|festival|course|workshop|other,description:text:required,start_time:datetime:required,end_time:datetime:required,venue:string:required,capacity:int:required,available_spots:int:required,status:enum:required:draft|published|cancelled"
+      "service": "event-domain",
+      "fields": "uuid:string:required,title:string:required,event_type:enum:required:function|festival|course|workshop|other,description:text:required,status:enum:required:draft|published|cancelled"
+    },
+    {
+      "resource": "Venue",
+      "module": "Venues",
+      "api_path": "/events/venues",
+      "service": "event-domain",
+      "fields": "name:string:required|searchable,slug:string:required|searchable|unique,description:text,capacity:int,is_active:bool:required"
+    },
+    {
+      "resource": "Occurrence",
+      "module": "Occurrences",
+      "api_path": "/events/occurrences",
+      "service": "event-domain",
+      "fields": "event_id:relation:required:events,venue_id:relation:venues,start_time:datetime:required,end_time:datetime:required,status:string:required,capacity:int:required,available_spots:int:required"
+    },
+    {
+      "resource": "EventReference",
+      "module": "EventReferences",
+      "api_path": "/events/event-references",
+      "service": "event-domain",
+      "fields": "event_id:relation:required:events,source_system:string:required,source_type:string:required,source_id:string:required,relation:string:required,metadata:json"
     },
     {
       "resource": "TicketType",
       "module": "TicketTypes",
       "api_path": "/events/ticket-types",
-      "service": "domain",
-      "fields": "event_id:relation:required:events,name:string:required,price:decimal:required,capacity:int:required,available_spots:int:required,sales_start:datetime:required,sales_end:datetime:required"
+      "service": "event-domain",
+      "fields": "event_id:relation:required:events,occurrence_id:relation:occurrences,name:string:required,price:decimal:required,capacity:int:required,available_spots:int:required,sales_start:datetime:required,sales_end:datetime:required"
     },
     {
       "resource": "Booking",
       "module": "Bookings",
       "api_path": "/events/bookings",
-      "service": "domain",
+      "service": "event-domain",
       "fields": "uuid:string:required,user_id:int,guest_email:string,total_amount:decimal:required,status:enum:required:pending|confirmed|cancelled|expired,reserved_until:datetime"
     },
     {
       "resource": "Ticket",
       "module": "Tickets",
       "api_path": "/events/tickets",
-      "service": "domain",
+      "service": "event-domain",
       "fields": "uuid:string:required,booking_id:relation:required:bookings,ticket_type_id:relation:required:ticketTypes,holder_name:string:required,holder_email:string:required,qr_code_token:string:required,status:enum:required:valid|used|void,checked_in_at:datetime"
     }
   ],
@@ -167,8 +234,19 @@
       "module": "Events",
       "label": "Events.sidebar_label",
       "icon": "calendar",
-      "permission": "events.read",
-      "items": ["Event", "TicketType", "Booking", "Ticket"]
+      "permission": "event.events.read",
+      "groups": [
+        {
+          "key": "scheduling",
+          "label": "Events.sidebar_group_scheduling",
+          "items": ["Event", "Venue", "Occurrence", "EventReference"]
+        },
+        {
+          "key": "ticketing",
+          "label": "Events.sidebar_group_ticketing",
+          "items": ["TicketType", "Booking", "Ticket"]
+        }
+      ]
     }
   ]
 }

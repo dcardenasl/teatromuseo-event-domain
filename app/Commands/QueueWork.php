@@ -70,7 +70,7 @@ class QueueWork extends BaseCommand
         // the entire "option=value" string as the key. We resolve both formats:
         // --queue logs  (space, parsed natively)
         // --queue=logs  (equals, parsed manually)
-        $queue    = $this->resolveOption('queue', 'default');
+        $queue    = $this->resolveOption('queue') ?? 'default';
         $once     = CLI::getOption('once') !== null || $this->resolveOption('once') !== null;
         $sleep    = (int) $this->resolveOption('sleep', '3');
         $maxJobs  = (int) $this->resolveOption('max-jobs', '0');

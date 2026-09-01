@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Architecture;
 
 use CodeIgniter\Test\CIUnitTestCase;
+use dcardenasl\Ci4ApiCore\Models\BaseAuditableModel;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -56,10 +57,20 @@ class AuditableModelConventionsTest extends CIUnitTestCase
                 continue;
             }
 
-            $extendsBase = str_contains($source, 'extends BaseAuditableModel')
-                || str_contains($source, 'extends \dcardenasl\Ci4ApiCore\Models\BaseAuditableModel');
-            if (! $extendsBase) {
-                $violations[] = "{$name}: must extend BaseAuditableModel (or be added to NON_AUDITABLE with rationale)";
+            // Resolve the real class and walk the inheritance chain rather than
+            // string-matching `extends BaseAuditableModel`. A model may inherit
+            // audit behaviour through an intermediate core base such as
+            // BaseTranslationModel or BasePublicSlugModel; a source-text check
+            // cannot see through those and would report a false violation.
+            $fqcn = $this->resolveClassName($source, $name);
+
+            if ($fqcn === null || ! class_exists($fqcn)) {
+                $violations[] = "{$name}: could not resolve class name";
+                continue;
+            }
+
+            if ($fqcn !== BaseAuditableModel::class && ! is_subclass_of($fqcn, BaseAuditableModel::class)) {
+                $violations[] = "{$name}: must extend BaseAuditableModel (directly or through a core base model), or be added to NON_AUDITABLE with rationale";
             }
 
             if (str_contains($source, 'use dcardenasl\Ci4ApiCore\Models\Auditable;')) {
@@ -68,5 +79,19 @@ class AuditableModelConventionsTest extends CIUnitTestCase
         }
 
         $this->assertSame([], $violations, "Auditable model convention violations:\n- " . implode("\n- ", $violations));
+    }
+
+    /**
+     * Derive the fully-qualified class name from the file's own namespace
+     * declaration, so the test keeps working if models are ever moved into
+     * sub-namespaces.
+     */
+    private function resolveClassName(string $source, string $basename): ?string
+    {
+        if (preg_match('/^namespace\s+([^;]+);/m', $source, $matches) !== 1) {
+            return null;
+        }
+
+        return trim($matches[1]) . '\\' . $basename;
     }
 }

@@ -51,7 +51,8 @@ class BookingService extends BaseCrudService implements BookingServiceInterface
             throw new BadRequestException(lang('Bookings.invalid_quantity'));
         }
 
-        // Fetch ticket type and associated event
+        // Ticket types are always scoped to a concrete occurrence. This keeps
+        // inventory and schedule ownership in one place.
         $ticketTypeModel = model(\App\Models\TicketTypeModel::class);
         $ticketType = $ticketTypeModel->find($ticketTypeId);
 
@@ -59,33 +60,30 @@ class BookingService extends BaseCrudService implements BookingServiceInterface
             throw new BadRequestException(lang('Bookings.ticket_type_not_found'));
         }
 
-        $eventModel = model(\App\Models\EventModel::class);
-        $event = $eventModel->find($ticketType->event_id);
-
-        if (!$event) {
-            throw new BadRequestException(lang('Bookings.event_not_found'));
+        if (empty($ticketType->occurrence_id)) {
+            throw new BadRequestException(lang('Bookings.occurrence_not_found'));
         }
 
-        // Verify category and event availability
+        $occurrence = model(\App\Models\OccurrenceModel::class)->find($ticketType->occurrence_id);
+
+        if (! $occurrence) {
+            throw new BadRequestException(lang('Bookings.occurrence_not_found'));
+        }
+
+        // Verify category and occurrence availability.
         if ($ticketType->available_spots < $quantity) {
             throw new BadRequestException(lang('Bookings.ticket_type_sold_out'));
         }
 
-        if ($event->available_spots < $quantity) {
-            throw new BadRequestException(lang('Bookings.event_sold_out'));
+        if ($occurrence->available_spots < $quantity) {
+            throw new BadRequestException(lang('Bookings.occurrence_sold_out'));
         }
 
-        // Decrement spots atomically in both tables
-        $db = \Config\Database::connect();
-        $db->table('ticket_types')
-            ->where('id', $ticketTypeId)
-            ->set('available_spots', "available_spots - {$quantity}", false)
-            ->update();
-
-        $db->table('events')
-            ->where('id', $ticketType->event_id)
-            ->set('available_spots', "available_spots - {$quantity}", false)
-            ->update();
+        // Decrement both inventories atomically. Affected-row checks prevent
+        // two concurrent holds from overselling the same stock.
+        if (! $this->adjustInventory($ticketTypeId, (int) $occurrence->id, -$quantity)) {
+            throw new BadRequestException(lang('Bookings.occurrence_sold_out'));
+        }
 
         // Calculate backend total amount to prevent client tampering
         $totalAmount = (float) ($ticketType->price * $quantity);
@@ -183,23 +181,17 @@ class BookingService extends BaseCrudService implements BookingServiceInterface
                     $counts[$ticket->ticket_type_id] = ($counts[$ticket->ticket_type_id] ?? 0) + 1;
                 }
 
-                $db = \Config\Database::connect();
                 $ticketTypeModel = model(\App\Models\TicketTypeModel::class);
 
                 foreach ($counts as $ticketTypeId => $qty) {
                     $ticketType = $ticketTypeModel->find($ticketTypeId);
                     if ($ticketType) {
-                        // Increment categories spots
-                        $db->table('ticket_types')
-                            ->where('id', $ticketTypeId)
-                            ->set('available_spots', "available_spots + {$qty}", false)
-                            ->update();
+                        if (empty($ticketType->occurrence_id)) {
+                            throw new BadRequestException(lang('Bookings.occurrence_not_found'));
+                        }
 
-                        // Increment events spots
-                        $db->table('events')
-                            ->where('id', $ticketType->event_id)
-                            ->set('available_spots', "available_spots + {$qty}", false)
-                            ->update();
+                        // Release the spots back to both inventories.
+                        $this->adjustInventory((int) $ticketTypeId, (int) $ticketType->occurrence_id, $qty);
                     }
                 }
 
@@ -214,5 +206,22 @@ class BookingService extends BaseCrudService implements BookingServiceInterface
         }
 
         return $data;
+    }
+
+    /**
+     * Adjusts a ticket type's and its occurrence's `available_spots` in one
+     * atomic pair of updates. `$delta` is negative to hold spots (beforeStore)
+     * and positive to release them back (beforeUpdate, on cancel/expire) — the
+     * single call site both hooks used to duplicate inline (LAYER-03).
+     *
+     * @return bool true if both inventories were adjusted; false if a
+     *               decrement could not be fully satisfied.
+     */
+    private function adjustInventory(int $ticketTypeId, int $occurrenceId, int $delta): bool
+    {
+        $ticketTypeUpdated = model(\App\Models\TicketTypeModel::class)->adjustAvailableSpots($ticketTypeId, $delta);
+        $occurrenceUpdated = model(\App\Models\OccurrenceModel::class)->adjustAvailableSpots($occurrenceId, $delta);
+
+        return $ticketTypeUpdated && $occurrenceUpdated;
     }
 }

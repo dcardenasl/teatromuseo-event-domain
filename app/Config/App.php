@@ -122,7 +122,7 @@ class App extends BaseConfig
      *
      * @var list<string>
      */
-    public array $supportedLocales = ['en', 'es'];
+    public array $supportedLocales = ['en', 'es', 'fr', 'pt'];
 
     /**
      * --------------------------------------------------------------------------
@@ -136,6 +136,12 @@ class App extends BaseConfig
      *      supported by PHP.
      */
     public string $appTimezone = 'UTC';
+
+    /**
+     * Wall-clock timezone used by venue schedules when no venue-specific
+     * timezone is available. Technical timestamps remain UTC.
+     */
+    public string $eventScheduleTimezone = 'America/Santiago';
 
     /**
      * --------------------------------------------------------------------------

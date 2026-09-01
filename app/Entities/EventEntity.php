@@ -14,11 +14,8 @@ class EventEntity extends Entity
         'title' => 'string',
         'event_type' => 'string',
         'description' => 'string',
-        'start_time' => 'string',
-        'end_time' => 'string',
-        'venue' => 'string',
-        'capacity' => 'int',
-        'available_spots' => 'int',
+        'cover_file_id' => '?integer',
+        'gallery_file_ids' => '?string',
         'status' => 'string',
     ];
 

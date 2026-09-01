@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filters;
 
+use CodeIgniter\HTTP\RequestInterface;
 use dcardenasl\Ci4ApiCore\Http\Filters\AbstractThrottleFilter;
 
 /**
@@ -13,4 +14,34 @@ use dcardenasl\Ci4ApiCore\Http\Filters\AbstractThrottleFilter;
  */
 class ThrottleFilter extends AbstractThrottleFilter
 {
+    /**
+     * Public GETs are server-to-server reads gated by X-App-Key. Bucket them
+     * by that trusted caller rather than the hosting IP, which is shared by
+     * every Web request on a shared host.
+     *
+     * @return list<array{key: string, limit: int, window: int}>
+     */
+    protected function resolveBuckets(RequestInterface $request): array
+    {
+        if (strtolower($request->getMethod()) === 'get' && $this->isPublicRead($request)) {
+            $appKey = trim($request->getHeaderLine('X-App-Key'));
+
+            if ($appKey !== '') {
+                return [[
+                    'key'    => 'rate_limit_public_read_app_' . hash('sha256', $appKey),
+                    'limit'  => max(1, (int) env('PUBLIC_READ_RATE_LIMIT_REQUESTS', 600)),
+                    'window' => max(1, (int) env('PUBLIC_READ_RATE_LIMIT_WINDOW', 60)),
+                ]];
+            }
+        }
+
+        return parent::resolveBuckets($request);
+    }
+
+    private function isPublicRead(RequestInterface $request): bool
+    {
+        $path = $request->getUri()->getPath();
+
+        return str_contains($path, '/api/v1/public/') || str_contains($path, '/api/v1/public-read/');
+    }
 }

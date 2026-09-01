@@ -67,6 +67,15 @@ class Hub extends BaseConfig
      */
     public string $adminToken = '';
 
+    /**
+     * Shared secret used to verify HMAC-signed calls the Hub makes *into*
+     * this domain app (internal/files/* usage-check and invalidate-cache
+     * routes — see HubSignatureFilter). Configured identically on the Hub
+     * and every domain app. Optional: unset disables those routes (they
+     * fail closed), it does not fail application boot like hub.url/apiKey.
+     */
+    public string $internalSecret = '';
+
     public function __construct()
     {
         parent::__construct();
@@ -74,6 +83,7 @@ class Hub extends BaseConfig
         $this->apiKey     = (string) (env('hub.apiKey') ?: $this->apiKey);
         $this->appCode    = (string) (env('hub.appCode') ?: $this->appCode);
         $this->adminToken = (string) (env('hub.adminToken') ?: $this->adminToken);
+        $this->internalSecret = (string) (env('HUB_INTERNAL_SECRET') ?: env('hub.internalSecret') ?: '');
 
         $ttl = env('hub.introspectCacheTtl');
         if ($ttl !== null && $ttl !== false && $ttl !== '') {

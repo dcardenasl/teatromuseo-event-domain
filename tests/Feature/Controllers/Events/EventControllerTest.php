@@ -39,4 +39,11 @@ final class EventControllerTest extends CIUnitTestCase
 
         $result->assertStatus(401);
     }
+
+    public function testDashboardSummarySmoke(): void
+    {
+        $result = $this->get('/api/v1/events/dashboard/summary');
+
+        $result->assertStatus(401);
+    }
 }

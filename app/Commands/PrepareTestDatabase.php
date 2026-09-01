@@ -19,13 +19,16 @@ class PrepareTestDatabase extends BaseCommand
     protected $description = 'Drop all tables in the tests database and rerun the App migrations.';
     protected $usage = 'tests:prepare-db';
 
-    public function run(array $params)
+    /**
+     * @param array<int, string> $params
+     */
+    public function run(array $params): int
     {
         CLI::write('Preparing test database (group "tests").');
 
         $db = $this->connectToTestsDatabase();
         if ($db === null) {
-            return EXIT_ERROR;
+            return 1;
         }
 
         $isSqlite = strtolower($db->DBDriver) === 'sqlite3';
@@ -35,7 +38,7 @@ class PrepareTestDatabase extends BaseCommand
             $db->close();
             $db = $this->connectToTestsDatabase();
             if ($db === null) {
-                return EXIT_ERROR;
+                return 1;
             }
         }
         if (! $isSqlite) {
@@ -46,13 +49,16 @@ class PrepareTestDatabase extends BaseCommand
 
         if (! $ready) {
             CLI::error('Post-migration verification failed. Inspect the database and rerun the command.');
-            return EXIT_ERROR;
+            return 1;
         }
 
         CLI::write('Test database prepared.', 'green');
-        return EXIT_SUCCESS;
+        return 0;
     }
 
+    /**
+     * @return BaseConnection<mixed, mixed>|null
+     */
     private function connectToTestsDatabase(): ?BaseConnection
     {
         try {
@@ -66,6 +72,9 @@ class PrepareTestDatabase extends BaseCommand
         }
     }
 
+    /**
+     * @param BaseConnection<mixed, mixed> $db
+     */
     private function dropAllTables(BaseConnection $db): void
     {
         $driver = strtolower($db->DBDriver);
@@ -78,10 +87,10 @@ class PrepareTestDatabase extends BaseCommand
             return;
         }
 
-        $tables = array_filter(
-            $db->listTables(),
-            static fn ($table) => $table !== 'migrations'
-        );
+        $allTables = $db->listTables();
+        $tables = is_array($allTables)
+            ? array_values(array_filter($allTables, static fn (string $table): bool => $table !== 'migrations'))
+            : [];
         if (empty($tables)) {
             CLI::write('No tables found to drop.');
             return;
@@ -97,6 +106,9 @@ class PrepareTestDatabase extends BaseCommand
         CLI::write('Dropped all existing tables.');
     }
 
+    /**
+     * @param BaseConnection<mixed, mixed> $db
+     */
     private function disableForeignKeys(BaseConnection $db): void
     {
         $driver = strtolower($db->DBDriver);
@@ -105,6 +117,9 @@ class PrepareTestDatabase extends BaseCommand
         }
     }
 
+    /**
+     * @param BaseConnection<mixed, mixed> $db
+     */
     private function enableForeignKeys(BaseConnection $db): void
     {
         $driver = strtolower($db->DBDriver);
@@ -113,6 +128,9 @@ class PrepareTestDatabase extends BaseCommand
         }
     }
 
+    /**
+     * @param BaseConnection<mixed, mixed> $db
+     */
     private function migrateAppSchema(BaseConnection $db): void
     {
         $config = new Migrations();
@@ -125,6 +143,9 @@ class PrepareTestDatabase extends BaseCommand
         $runner->latest('tests');
     }
 
+    /**
+     * @param BaseConnection<mixed, mixed> $db
+     */
     private function resetMigrationHistory(BaseConnection $db): void
     {
         if (! $db->tableExists('migrations')) {
@@ -136,20 +157,17 @@ class PrepareTestDatabase extends BaseCommand
             ->delete();
     }
 
-    private function ensureMigrationsTable(BaseConnection $db): void
-    {
-        $config = new Migrations();
-        $config->enabled = true;
-
-        /** @var MigrationRunner $runner */
-        $runner = service('migrations', $config, $db, false);
-        $runner->setSilent(false);
-        $runner->ensureTable();
-    }
-
+    /**
+     * @param BaseConnection<mixed, mixed> $db
+     */
     private function ensureExpectedTablesPresent(BaseConnection $db): bool
     {
         $tables = $db->listTables();
+        if (! is_array($tables)) {
+            CLI::error('Unable to list tables after migrations.');
+            return false;
+        }
+
         $required = ['migrations'];
         foreach ($required as $table) {
             if (! in_array($table, $tables, true)) {

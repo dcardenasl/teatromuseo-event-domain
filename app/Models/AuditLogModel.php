@@ -78,14 +78,14 @@ class AuditLogModel extends Model
      *
      * @param string $entityType Entity type (e.g., 'user', 'file')
      * @param int $entityId Entity ID
-     * @return array
+     * @return list<\App\Entities\AuditLogEntity>
      */
     public function getByEntity(string $entityType, int $entityId): array
     {
-        return $this->where('entity_type', $entityType)
+        return $this->asEntities($this->where('entity_type', $entityType)
             ->where('entity_id', $entityId)
             ->orderBy('id', 'DESC')
-            ->findAll();
+            ->findAll());
     }
 
     /**
@@ -93,25 +93,24 @@ class AuditLogModel extends Model
      *
      * @param int $userId
      * @param int $limit
-     * @return array
+     * @return list<\App\Entities\AuditLogEntity>
      */
     public function getByUser(int $userId, int $limit = 50): array
     {
-        return $this->where('user_id', $userId)
+        return $this->asEntities($this->where('user_id', $userId)
             ->orderBy('created_at', 'DESC')
-            ->findAll($limit);
+            ->findAll($limit));
     }
 
     /**
      * Get recent audit logs
      *
      * @param int $limit
-     * @return array
+     * @return list<\App\Entities\AuditLogEntity>
      */
     public function getRecent(int $limit = 100): array
     {
-        return $this->orderBy('created_at', 'DESC')
-            ->findAll($limit);
+        return $this->asEntities($this->orderBy('created_at', 'DESC')->findAll($limit));
     }
 
     /**
@@ -119,7 +118,9 @@ class AuditLogModel extends Model
      */
     public function getActionFacets(int $windowDays = 90, int $limit = 100): array
     {
-        $since = date('Y-m-d H:i:s', strtotime('-' . max(1, $windowDays) . ' days'));
+        $since = (new \DateTimeImmutable('now'))
+            ->modify('-' . max(1, $windowDays) . ' days')
+            ->format('Y-m-d H:i:s');
         $query = $this->builder()
             ->select('action AS value, COUNT(*) AS count')
             ->where('created_at >=', $since)
@@ -133,10 +134,10 @@ class AuditLogModel extends Model
 
         $rows = $query ? $query->getResultArray() : [];
 
-        return array_map(static fn (array $row): array => [
+        return array_values(array_map(static fn (array $row): array => [
             'value' => (string) ($row['value'] ?? ''),
             'count' => (int) ($row['count'] ?? 0),
-        ], $rows);
+        ], $rows));
     }
 
     /**
@@ -144,7 +145,9 @@ class AuditLogModel extends Model
      */
     public function getEntityTypeFacets(int $windowDays = 90, int $limit = 100): array
     {
-        $since = date('Y-m-d H:i:s', strtotime('-' . max(1, $windowDays) . ' days'));
+        $since = (new \DateTimeImmutable('now'))
+            ->modify('-' . max(1, $windowDays) . ' days')
+            ->format('Y-m-d H:i:s');
         $query = $this->builder()
             ->select('entity_type AS value, COUNT(*) AS count')
             ->where('created_at >=', $since)
@@ -158,9 +161,26 @@ class AuditLogModel extends Model
 
         $rows = $query ? $query->getResultArray() : [];
 
-        return array_map(static fn (array $row): array => [
+        return array_values(array_map(static fn (array $row): array => [
             'value' => (string) ($row['value'] ?? ''),
             'count' => (int) ($row['count'] ?? 0),
-        ], $rows);
+        ], $rows));
+    }
+
+    /**
+     * @param array<int, mixed> $rows
+     * @return list<\App\Entities\AuditLogEntity>
+     */
+    private function asEntities(array $rows): array
+    {
+        $entities = [];
+        foreach ($rows as $row) {
+            if (! $row instanceof \App\Entities\AuditLogEntity) {
+                throw new \UnexpectedValueException('AuditLogModel returned a non-entity row.');
+            }
+            $entities[] = $row;
+        }
+
+        return $entities;
     }
 }
